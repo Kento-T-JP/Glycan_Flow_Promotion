@@ -1,0 +1,183 @@
+<!doctype html>
+<html lang="ja">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Glycan Flow Promotion</title>
+    <meta
+      name="description"
+      content="フローネットワークを用いた糖鎖生合成過程の数理モデル化を紹介するインタラクティブWebアプリケーション"
+    />
+    <link rel="stylesheet" href="styles.css" />
+  </head>
+  <body>
+    <header class="app-header">
+      <div>
+        <p class="eyebrow">Bioinformatics x Graph Theory x Mathematical Optimization</p>
+        <h1>Glycan Flow Promotion</h1>
+        <p class="lead">
+          糖鎖が細胞内で作られる過程をフローネットワークとして捉え、どの糖鎖がどのくらい生成されるかを直感的に探索できます。
+        </p>
+      </div>
+      <nav class="top-nav" aria-label="ページ内ナビゲーション">
+        <a href="#model">モデル</a>
+        <a href="#simulation">シミュレーション</a>
+        <a href="#impact">意義</a>
+      </nav>
+    </header>
+
+    <main>
+      <section class="hero-grid" id="model">
+        <div class="research-panel">
+          <div class="section-kicker">Research Position</div>
+          <h2>糖鎖生合成を「流れ」として読む</h2>
+          <p>
+            単糖が酵素反応によって段階的に結合すると糖鎖になります。本研究では、その変換反応をエッジ、糖鎖構造をノードとして表し、反応の強さを容量として扱います。
+          </p>
+          <div class="metric-row" aria-label="研究モデルの規模">
+            <div>
+              <strong>43</strong>
+              <span>nodes</span>
+            </div>
+            <div>
+              <strong>47</strong>
+              <span>edges</span>
+            </div>
+            <div>
+              <strong>3</strong>
+              <span>sources</span>
+            </div>
+            <div>
+              <strong>5</strong>
+              <span>sinks</span>
+            </div>
+          </div>
+        </div>
+
+        <div class="glycan-visual" aria-label="糖鎖構造の模式図">
+          <svg viewBox="0 0 540 360" role="img">
+            <title>糖鎖の木構造模式図</title>
+            <path class="branch" d="M270 290 L270 224 L206 168 L168 100" />
+            <path class="branch" d="M270 224 L334 168 L376 100" />
+            <path class="branch" d="M270 224 L270 140 L270 76" />
+            <path class="branch branch-soft" d="M206 168 L116 170" />
+            <path class="branch branch-soft" d="M334 168 L426 170" />
+            <g class="sugar sugar-blue"><circle cx="270" cy="290" r="25" /></g>
+            <g class="sugar sugar-green"><rect x="246" y="200" width="48" height="48" rx="8" /></g>
+            <g class="sugar sugar-yellow"><circle cx="206" cy="168" r="22" /></g>
+            <g class="sugar sugar-red"><rect x="312" y="146" width="44" height="44" rx="8" /></g>
+            <g class="sugar sugar-violet"><circle cx="270" cy="76" r="21" /></g>
+            <g class="sugar sugar-cyan"><polygon points="168,77 194,100 168,123 142,100" /></g>
+            <g class="sugar sugar-rose"><polygon points="376,77 402,100 376,123 350,100" /></g>
+            <g class="sugar sugar-lime"><circle cx="116" cy="170" r="20" /></g>
+            <g class="sugar sugar-orange"><rect x="406" y="150" width="40" height="40" rx="8" /></g>
+          </svg>
+        </div>
+      </section>
+
+      <section class="workspace" id="simulation">
+        <aside class="control-surface" aria-label="シミュレーション条件">
+          <div class="section-kicker">Simulation</div>
+          <h2>酵素活性を変えて、生成分布を見る</h2>
+
+          <div class="segmented" role="tablist" aria-label="組織プリセット">
+            <button class="segment active" data-preset="pancreas" type="button">膵臓</button>
+            <button class="segment" data-preset="liver" type="button">肝臓</button>
+            <button class="segment" data-preset="immune" type="button">免疫</button>
+          </div>
+
+          <div class="slider-list">
+            <label class="slider-field">
+              <span>初期基質の供給</span>
+              <input id="sourceInput" type="range" min="40" max="130" value="100" />
+              <output id="sourceOutput">100</output>
+            </label>
+            <label class="slider-field">
+              <span>分岐反応の強さ</span>
+              <input id="branchInput" type="range" min="20" max="120" value="78" />
+              <output id="branchOutput">78</output>
+            </label>
+            <label class="slider-field">
+              <span>末端修飾の強さ</span>
+              <input id="terminalInput" type="range" min="20" max="120" value="64" />
+              <output id="terminalOutput">64</output>
+            </label>
+          </div>
+
+          <button class="reset-button" type="button" id="resetButton" aria-label="条件を初期化">
+            <span aria-hidden="true">↺</span>
+            初期化
+          </button>
+        </aside>
+
+        <section class="network-stage" aria-label="フローネットワーク">
+          <div class="stage-header">
+            <div>
+              <div class="section-kicker">Flow Network</div>
+              <h2>糖鎖生成ネットワーク</h2>
+            </div>
+            <div class="flow-total">
+              <span>total flow</span>
+              <strong id="totalFlow">0.0</strong>
+            </div>
+          </div>
+
+          <svg id="networkSvg" class="network-svg" viewBox="0 0 860 520" role="img" aria-labelledby="networkTitle networkDesc">
+            <title id="networkTitle">糖鎖生合成のフローネットワーク</title>
+            <desc id="networkDesc">糖鎖をノード、変換反応をエッジ、流量を線の太さで示すインタラクティブな模式図</desc>
+          </svg>
+
+          <div class="node-detail" id="nodeDetail" aria-live="polite">
+            <span class="detail-label">selected node</span>
+            <strong>G0</strong>
+            <p>初期糖鎖。ここから複数の酵素反応に分岐します。</p>
+          </div>
+        </section>
+
+        <section class="result-panel" aria-label="生成糖鎖の予測分布">
+          <div class="section-kicker">Predicted Distribution</div>
+          <h2>生成される糖鎖の分布</h2>
+          <div id="barChart" class="bar-chart"></div>
+          <div class="insight-box">
+            <span>interpretation</span>
+            <p id="insightText">条件を変更すると、終点糖鎖へ流れる量が変化します。</p>
+          </div>
+        </section>
+      </section>
+
+      <section class="impact" id="impact">
+        <div>
+          <div class="section-kicker">Why It Matters</div>
+          <h2>実験の前に、候補を絞る</h2>
+          <p>
+            糖鎖解析には高価な分析装置と専門的な実験環境が必要です。数理モデルで生成分布を予測できれば、実験計画の優先順位付けや、疾患発見・治療応用に向けた仮説探索を効率化できます。
+          </p>
+        </div>
+        <div class="impact-steps">
+          <div>
+            <span>01</span>
+            <strong>現象をモデル化</strong>
+            <p>糖鎖構造と反応をグラフとして整理します。</p>
+          </div>
+          <div>
+            <span>02</span>
+            <strong>流量を最適化</strong>
+            <p>最大フロー問題として生成量を推定します。</p>
+          </div>
+          <div>
+            <span>03</span>
+            <strong>実験に接続</strong>
+            <p>予測分布をもとに、検証すべき糖鎖を絞り込みます。</p>
+          </div>
+        </div>
+      </section>
+    </main>
+
+    <footer class="app-footer">
+      <span>フローネットワークを用いた糖鎖生合成過程の数理モデル化</span>
+      <span>戸塚健人</span>
+    </footer>
+
+    <script src="app.js"></script>
+  </body>
+</html>
