@@ -6,140 +6,175 @@
     <title>Glycan Flow Promotion</title>
     <meta
       name="description"
-      content="生命現象をネットワークとしてモデル化し、条件変化によるシミュレーションを体験するWebアプリケーション"
+      content="糖鎖生合成の反応経路をネットワークとして操作し、条件変化が生成物の分布に与える影響を確認するWebアプリケーション"
     />
     <link rel="stylesheet" href="styles.css" />
   </head>
   <body>
-    <header class="top-shell">
-      <div>
-        <p class="eyebrow">Systems Biology Simulator</p>
-        <h1>Glycan Flow Promotion</h1>
+    <a class="skip-link" href="#simulator">シミュレーターへ移動</a>
+
+    <header class="app-header">
+      <div class="header-copy">
+        <p class="eyebrow">糖鎖生合成フローシミュレーター</p>
+        <h1>生命現象を、操作できるネットワークとして見る</h1>
+        <p>
+          栄養供給、酵素活性、ストレス、阻害の条件を変えると、反応経路の流れと生成物の偏りがどう変わるかを確認できます。
+        </p>
       </div>
-      <nav class="top-nav" aria-label="ページ内ナビゲーション">
-        <a href="#simulator">Simulator</a>
-        <a href="#concept">Concept</a>
-        <a href="#output">Output</a>
-      </nav>
+
+      <ol class="flow-steps" aria-label="基本操作の流れ">
+        <li><span>1</span><strong>条件を選ぶ</strong><small>実験前の仮説を置く</small></li>
+        <li><span>2</span><strong>経路に介入</strong><small>反応点を促進・抑制</small></li>
+        <li><span>3</span><strong>結果を見る</strong><small>生成物の偏りを比較</small></li>
+      </ol>
     </header>
 
-    <main>
-      <section class="simulator" id="simulator">
-        <aside class="control-panel" aria-label="シミュレーション条件">
-          <div class="panel-heading">
-            <p class="eyebrow">Control Room</p>
-            <h2>環境を変えて生命現象の流れを見る</h2>
-          </div>
+    <main class="app-shell" id="simulator">
+      <section class="control-panel" aria-labelledby="controls-title">
+        <div class="section-heading">
+          <p class="eyebrow">条件設定</p>
+          <h2 id="controls-title">まず、細胞内の状態を決める</h2>
+          <p>プリセットを選ぶか、各条件を直接動かしてください。結果は自動で再計算されます。</p>
+        </div>
 
-          <div class="preset-grid" role="tablist" aria-label="環境プリセット">
-            <button class="preset active" data-preset="balanced" type="button">Balanced</button>
-            <button class="preset" data-preset="stress" type="button">Stress</button>
-            <button class="preset" data-preset="inhibited" type="button">Inhibited</button>
-            <button class="preset" data-preset="growth" type="button">Growth</button>
-          </div>
+        <div class="preset-grid" role="group" aria-label="条件プリセット">
+          <button class="preset active" data-preset="balanced" type="button" aria-pressed="true">
+            <span>標準条件</span>
+            <small>基準の流れ</small>
+          </button>
+          <button class="preset" data-preset="stress" type="button" aria-pressed="false">
+            <span>ストレス高</span>
+            <small>負荷経路を確認</small>
+          </button>
+          <button class="preset" data-preset="inhibited" type="button" aria-pressed="false">
+            <span>酵素阻害</span>
+            <small>反応低下を確認</small>
+          </button>
+          <button class="preset" data-preset="growth" type="button" aria-pressed="false">
+            <span>高供給</span>
+            <small>流量増加を確認</small>
+          </button>
+        </div>
 
-          <div class="slider-stack">
-            <label class="slider-field">
-              <span>栄養供給</span>
-              <input id="nutrientInput" type="range" min="20" max="160" value="96" />
-              <output id="nutrientOutput">96</output>
-            </label>
-            <label class="slider-field">
-              <span>酵素活性</span>
-              <input id="enzymeInput" type="range" min="20" max="160" value="104" />
-              <output id="enzymeOutput">104</output>
-            </label>
-            <label class="slider-field">
-              <span>細胞ストレス</span>
-              <input id="stressInput" type="range" min="0" max="140" value="28" />
-              <output id="stressOutput">28</output>
-            </label>
-            <label class="slider-field">
-              <span>阻害効果</span>
-              <input id="inhibitorInput" type="range" min="0" max="130" value="18" />
-              <output id="inhibitorOutput">18</output>
-            </label>
-          </div>
+        <div class="parameter-list" aria-label="モデル条件">
+          <label class="slider-field" for="nutrientInput">
+            <span>栄養供給</span>
+            <small>入口に入る材料の量</small>
+            <input id="nutrientInput" type="range" min="20" max="160" value="96" />
+            <output id="nutrientOutput" for="nutrientInput">96</output>
+          </label>
+          <label class="slider-field" for="enzymeInput">
+            <span>酵素活性</span>
+            <small>変換反応の進みやすさ</small>
+            <input id="enzymeInput" type="range" min="20" max="160" value="104" />
+            <output id="enzymeOutput" for="enzymeInput">104</output>
+          </label>
+          <label class="slider-field" for="stressInput">
+            <span>細胞ストレス</span>
+            <small>通常経路から外れる圧力</small>
+            <input id="stressInput" type="range" min="0" max="140" value="28" />
+            <output id="stressOutput" for="stressInput">28</output>
+          </label>
+          <label class="slider-field" for="inhibitorInput">
+            <span>阻害効果</span>
+            <small>酵素反応を弱める影響</small>
+            <input id="inhibitorInput" type="range" min="0" max="130" value="18" />
+            <output id="inhibitorOutput" for="inhibitorInput">18</output>
+          </label>
+        </div>
 
-          <div class="action-grid">
-            <button class="primary-action" id="pulseButton" type="button">Pulse</button>
-            <button class="ghost-action" id="resetButton" type="button">Reset</button>
-          </div>
+        <div class="intervention-tools" aria-label="介入操作">
+          <button class="primary-action" id="pulseButton" type="button">一時刺激を与える</button>
+          <button class="secondary-action" id="undoButton" type="button" disabled>直前の介入を戻す</button>
+          <button class="secondary-action" id="resetButton" type="button">初期条件に戻す</button>
+        </div>
 
-          <div class="hint-strip">
-            <span>Click nodes</span>
-            <p>反応点をクリックすると、その経路を一時的にブーストまたは抑制できます。</p>
-          </div>
-        </aside>
-
-        <section class="stage-panel" aria-label="生命現象モデル">
-          <div class="stage-header">
-            <div>
-              <p class="eyebrow">Living Network</p>
-              <h2>反応ネットワーク</h2>
-            </div>
-            <div class="status-meter" aria-label="シミュレーション状態">
-              <span>system state</span>
-              <strong id="systemState">Stable</strong>
-            </div>
-          </div>
-
-          <div class="network-wrap">
-            <svg id="networkSvg" class="network-svg" viewBox="0 0 980 620" role="img" aria-labelledby="networkTitle networkDesc">
-              <title id="networkTitle">生命現象を表す反応ネットワーク</title>
-              <desc id="networkDesc">環境条件によって流量が変わるネットワークモデル</desc>
-            </svg>
-          </div>
-
-          <div class="node-readout" id="nodeReadout" aria-live="polite">
-            <span>selected module</span>
-            <strong>Core Biosynthesis</strong>
-            <p>生命現象を、物質が変換されながら流れるネットワークとして扱います。</p>
-          </div>
-        </section>
-
-        <aside class="output-panel" id="output" aria-label="シミュレーション結果">
-          <div class="panel-heading">
-            <p class="eyebrow">Output</p>
-            <h2>予測される表現型</h2>
-          </div>
-          <div class="score-board">
-            <div>
-              <span>Total Flux</span>
-              <strong id="totalFlux">0</strong>
-            </div>
-            <div>
-              <span>Diversity</span>
-              <strong id="diversityScore">0</strong>
-            </div>
-            <div>
-              <span>Efficiency</span>
-              <strong id="efficiencyScore">0</strong>
-            </div>
-          </div>
-          <div id="phenotypeChart" class="phenotype-chart"></div>
-          <div class="insight-box">
-            <span>model interpretation</span>
-            <p id="insightText">条件を動かすと、ネットワーク全体の流れと生成物の偏りが変化します。</p>
-          </div>
-        </aside>
+        <div class="legend" aria-label="反応点の状態">
+          <span><i class="dot normal"></i>通常</span>
+          <span><i class="dot boosted"></i>促進</span>
+          <span><i class="dot inhibited"></i>抑制</span>
+        </div>
       </section>
 
-      <section class="concept-band" id="concept">
-        <div>
-          <p class="eyebrow">Core Idea</p>
-          <h2>生命現象を「観察」から「操作できるモデル」へ</h2>
+      <section class="stage-panel" aria-labelledby="network-heading">
+        <div class="stage-header">
+          <div>
+            <p class="eyebrow">反応モデル</p>
+            <h2 id="network-heading">どの経路に流れているか</h2>
+          </div>
+          <div class="system-summary" aria-label="現在のシミュレーション状態">
+            <span>現在の状態</span>
+            <strong id="systemState">計算中</strong>
+          </div>
         </div>
-        <p>
-          本質は特定のノード数ではなく、生物学的な反応や変換をネットワークとして抽象化し、条件変化に対する振る舞いを計算可能にすることです。実験の前に仮説を絞り、どの経路が効いているのかを直感的に探索できます。
-        </p>
+
+        <div class="network-wrap">
+          <div class="state-overlay" id="networkLoading">モデルを準備しています</div>
+          <svg id="networkSvg" class="network-svg" viewBox="0 0 980 620" role="img" aria-labelledby="networkTitle networkDesc">
+            <title id="networkTitle">糖鎖生合成を表す反応ネットワーク</title>
+            <desc id="networkDesc">反応点をクリックして促進、抑制、通常に切り替え、流れの変化を確認できます。</desc>
+          </svg>
+        </div>
+
+        <div class="node-readout" id="nodeReadout" aria-live="polite">
+          <span>選択中の反応点</span>
+          <strong>基幹反応 - 通常</strong>
+          <p>反応点をクリックすると、通常、促進、抑制の順に切り替わります。</p>
+        </div>
+      </section>
+
+      <section class="output-panel" id="output" aria-labelledby="output-title">
+        <div class="section-heading compact">
+          <p class="eyebrow">計算結果</p>
+          <h2 id="output-title">生成物の分布を読む</h2>
+        </div>
+
+        <div class="insight-box primary-insight">
+          <span>現在の仮説</span>
+          <p id="insightText">条件を動かすと、ネットワーク全体の流れと生成物の偏りが変化します。</p>
+        </div>
+
+        <div class="score-board" aria-label="主要指標">
+          <div>
+            <span>総生成量</span>
+            <strong id="totalFlux">0</strong>
+          </div>
+          <div>
+            <span>分布の広がり</span>
+            <strong id="diversityScore">0</strong>
+          </div>
+          <div>
+            <span>変換効率</span>
+            <strong id="efficiencyScore">0%</strong>
+          </div>
+        </div>
+
+        <div id="phenotypeChart" class="phenotype-chart" aria-live="polite">
+          <div class="empty-state">結果を計算しています</div>
+        </div>
       </section>
     </main>
 
+    <section class="model-note" id="concept">
+      <div>
+        <p class="eyebrow">このモデルで見ること</p>
+        <h2>実験前に、どの条件が効きそうかを試す</h2>
+      </div>
+      <p>
+        このアプリは、糖鎖生合成のような段階的な反応を「物質がネットワークを流れる過程」として扱います。目的は、特定のノード数を再現することではなく、条件や介入が生成物の分布をどう変えるかを直感的に検討することです。
+      </p>
+    </section>
+
     <footer class="app-footer">
-      <span>Mathematical Modeling of Biosynthetic Flow</span>
+      <span>Glycan Flow Promotion</span>
       <span>Interactive Research Overview</span>
     </footer>
+
+    <div class="feedback-toast" id="feedbackToast" role="status" aria-live="polite" hidden></div>
+
+    <noscript>
+      <p class="noscript-message">このシミュレーターを使うには JavaScript を有効にしてください。</p>
+    </noscript>
 
     <script src="app.js"></script>
   </body>
