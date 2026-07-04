@@ -16,16 +16,16 @@
     <header class="app-header">
       <div class="header-copy">
         <p class="eyebrow">糖鎖生合成フローシミュレーター</p>
-        <h1>生命現象を、操作できるネットワークとして見る</h1>
+        <h1>糖鎖が作られる経路を、流れとして操作する</h1>
         <p>
-          栄養供給、酵素活性、ストレス、阻害の条件を変えると、反応経路の流れと生成物の偏りがどう変わるかを確認できます。
+          糖の材料、酵素の働き、ゴルジ体での処理時間を変えると、どの糖鎖タイプが増えやすいかを確認できます。
         </p>
       </div>
 
       <ol class="flow-steps" aria-label="基本操作の流れ">
-        <li><span>1</span><strong>条件を選ぶ</strong><small>実験前の仮説を置く</small></li>
-        <li><span>2</span><strong>経路に介入</strong><small>反応点を促進・抑制</small></li>
-        <li><span>3</span><strong>結果を見る</strong><small>生成物の偏りを比較</small></li>
+        <li><span>1</span><strong>培養条件を選ぶ</strong><small>細胞内の材料と酵素状態を置く</small></li>
+        <li><span>2</span><strong>酵素反応を変える</strong><small>強める・弱める・止める</small></li>
+        <li><span>3</span><strong>糖鎖分布を見る</strong><small>増えた糖鎖タイプを比較</small></li>
       </ol>
     </header>
 
@@ -33,66 +33,89 @@
       <section class="control-panel" aria-labelledby="controls-title">
         <div class="section-heading">
           <p class="eyebrow">条件設定</p>
-          <h2 id="controls-title">まず、細胞内の状態を決める</h2>
-          <p>プリセットを選ぶか、各条件を直接動かしてください。結果は自動で再計算されます。</p>
+          <h2 id="controls-title">まず、糖鎖合成の条件を決める</h2>
+          <p>糖の材料と反応時間を決め、各酵素の働きを増やす・減らす・止めると、糖鎖タイプの分布が再計算されます。</p>
         </div>
 
         <div class="preset-grid" role="group" aria-label="条件プリセット">
           <button class="preset active" data-preset="balanced" type="button" aria-pressed="true">
-            <span>標準条件</span>
-            <small>基準の流れ</small>
+            <span>標準ゴルジ条件</span>
+            <small>基準の糖鎖合成</small>
           </button>
           <button class="preset" data-preset="stress" type="button" aria-pressed="false">
-            <span>ストレス高</span>
-            <small>負荷経路を確認</small>
+            <span>滞在時間が長い</span>
+            <small>処理が進みやすい</small>
           </button>
           <button class="preset" data-preset="inhibited" type="button" aria-pressed="false">
-            <span>酵素阻害</span>
-            <small>反応低下を確認</small>
+            <span>枝分かれ酵素が弱い</span>
+            <small>分岐が進みにくい</small>
           </button>
           <button class="preset" data-preset="growth" type="button" aria-pressed="false">
-            <span>高供給</span>
-            <small>流量増加を確認</small>
+            <span>糖供与体が多い</span>
+            <small>材料が十分にある</small>
           </button>
         </div>
 
         <div class="parameter-list" aria-label="モデル条件">
           <label class="slider-field" for="nutrientInput">
-            <span>栄養供給</span>
-            <small>入口に入る材料の量</small>
+            <span>糖供与体プール</span>
+            <small>UDP-GlcNAcなど、糖を付加する材料の量</small>
             <input id="nutrientInput" type="range" min="20" max="160" value="96" />
             <output id="nutrientOutput" for="nutrientInput">96</output>
           </label>
-          <label class="slider-field" for="enzymeInput">
-            <span>酵素活性</span>
-            <small>変換反応の進みやすさ</small>
-            <input id="enzymeInput" type="range" min="20" max="160" value="104" />
-            <output id="enzymeOutput" for="enzymeInput">104</output>
-          </label>
           <label class="slider-field" for="stressInput">
-            <span>細胞ストレス</span>
-            <small>通常経路から外れる圧力</small>
+            <span>ゴルジ滞在時間</span>
+            <small>糖鎖が酵素に触れて処理される時間</small>
             <input id="stressInput" type="range" min="0" max="140" value="28" />
             <output id="stressOutput" for="stressInput">28</output>
           </label>
-          <label class="slider-field" for="inhibitorInput">
-            <span>阻害効果</span>
-            <small>酵素反応を弱める影響</small>
-            <input id="inhibitorInput" type="range" min="0" max="130" value="18" />
-            <output id="inhibitorOutput" for="inhibitorInput">18</output>
+        </div>
+
+        <div class="enzyme-panel" aria-label="酵素の働き具合">
+          <div class="subsection-heading">
+            <strong>酵素の働き具合</strong>
+            <span>0 は止める、100 は標準、200 は強く働く状態です。</span>
+          </div>
+          <label class="enzyme-row" for="mannosidaseInput">
+            <span>切りそろえる酵素</span>
+            <small>マンノシダーゼ: マンノースを減らす</small>
+            <input id="mannosidaseInput" data-enzyme="mannosidase" type="range" min="0" max="200" value="100" />
+            <output id="mannosidaseOutput" for="mannosidaseInput">100</output>
+            <button class="ko-button" type="button" data-ko="mannosidase">止める</button>
+          </label>
+          <label class="enzyme-row" for="mgatInput">
+            <span>枝分かれを作る酵素</span>
+            <small>MGAT: 枝分かれを増やす</small>
+            <input id="mgatInput" data-enzyme="mgat" type="range" min="0" max="200" value="100" />
+            <output id="mgatOutput" for="mgatInput">100</output>
+            <button class="ko-button" type="button" data-ko="mgat">止める</button>
+          </label>
+          <label class="enzyme-row" for="galtInput">
+            <span>枝を伸ばす酵素</span>
+            <small>GalT: ガラクトースを付ける</small>
+            <input id="galtInput" data-enzyme="galt" type="range" min="0" max="200" value="100" />
+            <output id="galtOutput" for="galtInput">100</output>
+            <button class="ko-button" type="button" data-ko="galt">止める</button>
+          </label>
+          <label class="enzyme-row" for="terminalInput">
+            <span>仕上げる酵素</span>
+            <small>ST/FUT: シアル酸・フコースを付ける</small>
+            <input id="terminalInput" data-enzyme="terminal" type="range" min="0" max="200" value="100" />
+            <output id="terminalOutput" for="terminalInput">100</output>
+            <button class="ko-button" type="button" data-ko="terminal">止める</button>
           </label>
         </div>
 
         <div class="intervention-tools" aria-label="介入操作">
-          <button class="primary-action" id="pulseButton" type="button">一時刺激を与える</button>
-          <button class="secondary-action" id="undoButton" type="button" disabled>直前の介入を戻す</button>
-          <button class="secondary-action" id="resetButton" type="button">初期条件に戻す</button>
+          <button class="primary-action" id="pulseButton" type="button">糖の材料を一時的に増やす</button>
+          <button class="secondary-action" id="undoButton" type="button" disabled>直前の酵素操作を戻す</button>
+          <button class="secondary-action" id="resetButton" type="button">標準条件に戻す</button>
         </div>
 
         <div class="legend" aria-label="反応点の状態">
           <span><i class="dot normal"></i>通常</span>
-          <span><i class="dot boosted"></i>促進</span>
-          <span><i class="dot inhibited"></i>抑制</span>
+          <span><i class="dot boosted"></i>増強</span>
+          <span><i class="dot inhibited"></i>停止</span>
         </div>
       </section>
 
@@ -100,7 +123,7 @@
         <div class="stage-header">
           <div>
             <p class="eyebrow">反応モデル</p>
-            <h2 id="network-heading">どの経路に流れているか</h2>
+          <h2 id="network-heading">糖鎖がどの道を通るか</h2>
           </div>
           <div class="system-summary" aria-label="現在のシミュレーション状態">
             <span>現在の状態</span>
@@ -112,39 +135,39 @@
           <div class="state-overlay" id="networkLoading">モデルを準備しています</div>
           <svg id="networkSvg" class="network-svg" viewBox="0 0 980 620" role="img" aria-labelledby="networkTitle networkDesc">
             <title id="networkTitle">糖鎖生合成を表す反応ネットワーク</title>
-            <desc id="networkDesc">反応点をクリックして促進、抑制、通常に切り替え、流れの変化を確認できます。</desc>
+            <desc id="networkDesc">糖鎖前駆体が切りそろえ、枝分かれ、伸長、仕上げを受ける流れを示します。酵素反応点をクリックして通常、増強、停止に切り替えられます。</desc>
           </svg>
         </div>
 
         <div class="node-readout" id="nodeReadout" aria-live="polite">
           <span>選択中の反応点</span>
-          <strong>基幹反応 - 通常</strong>
-          <p>反応点をクリックすると、通常、促進、抑制の順に切り替わります。</p>
+          <strong>糖鎖前駆体 - 通常</strong>
+          <p>酵素反応点をクリックすると、標準、強める、止めるの順に切り替わります。</p>
         </div>
       </section>
 
       <section class="output-panel" id="output" aria-labelledby="output-title">
         <div class="section-heading compact">
           <p class="eyebrow">計算結果</p>
-          <h2 id="output-title">生成物の分布を読む</h2>
+          <h2 id="output-title">どの糖鎖タイプが増えたかを見る</h2>
         </div>
 
         <div class="insight-box primary-insight">
           <span>現在の仮説</span>
-          <p id="insightText">条件を動かすと、ネットワーク全体の流れと生成物の偏りが変化します。</p>
+          <p id="insightText">条件を動かすと、未加工タイプ、枝分かれタイプ、仕上げ済みタイプの割合が変化します。</p>
         </div>
 
         <div class="score-board" aria-label="主要指標">
           <div>
-            <span>総生成量</span>
+            <span>総糖鎖量</span>
             <strong id="totalFlux">0</strong>
           </div>
           <div>
-            <span>分布の広がり</span>
+            <span>糖鎖多様性</span>
             <strong id="diversityScore">0</strong>
           </div>
           <div>
-            <span>変換効率</span>
+            <span>成熟効率</span>
             <strong id="efficiencyScore">0%</strong>
           </div>
         </div>
@@ -158,10 +181,10 @@
     <section class="model-note" id="concept">
       <div>
         <p class="eyebrow">このモデルで見ること</p>
-        <h2>実験前に、どの条件が効きそうかを試す</h2>
+        <h2>どの酵素条件で、どの糖鎖タイプが増えるかを試す</h2>
       </div>
       <p>
-        このアプリは、糖鎖生合成のような段階的な反応を「物質がネットワークを流れる過程」として扱います。目的は、特定のノード数を再現することではなく、条件や介入が生成物の分布をどう変えるかを直感的に検討することです。
+        このアプリは、N型糖鎖の生合成を意識した簡略モデルです。糖鎖前駆体がゴルジ体で「切りそろえる」「枝分かれさせる」「伸ばす」「仕上げる」という反応を受け、未加工タイプ、枝分かれタイプ、仕上げ済みタイプへ分かれる流れを表します。
       </p>
     </section>
 
