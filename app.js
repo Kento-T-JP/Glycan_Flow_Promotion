@@ -1,275 +1,473 @@
 const presets = {
-  pancreas: {
-    label: "膵臓",
-    source: 100,
-    branch: 78,
-    terminal: 64,
-    bias: { T1: 1.12, T2: 0.92, T3: 1.04, T4: 0.82, T5: 1.18 },
-  },
-  liver: {
-    label: "肝臓",
-    source: 112,
-    branch: 68,
-    terminal: 88,
-    bias: { T1: 0.88, T2: 1.16, T3: 0.96, T4: 1.18, T5: 0.82 },
-  },
-  immune: {
-    label: "免疫",
-    source: 84,
-    branch: 104,
-    terminal: 78,
-    bias: { T1: 0.78, T2: 0.92, T3: 1.2, T4: 0.98, T5: 1.14 },
-  },
+  balanced: { nutrient: 96, enzyme: 104, stress: 28, inhibitor: 18 },
+  stress: { nutrient: 72, enzyme: 82, stress: 112, inhibitor: 36 },
+  inhibited: { nutrient: 100, enzyme: 58, stress: 52, inhibitor: 112 },
+  growth: { nutrient: 146, enzyme: 132, stress: 18, inhibitor: 8 },
 };
 
-const nodes = [
-  { id: "S", label: "S", x: 70, y: 260, kind: "source", color: "#2563eb", detail: "初期基質の供給源。モデルではSourceとして扱います。" },
-  { id: "G0", label: "G0", x: 210, y: 260, kind: "glycan", color: "#16a34a", detail: "初期糖鎖。ここから複数の酵素反応に分岐します。" },
-  { id: "G1", label: "G1", x: 360, y: 145, kind: "glycan", color: "#d99a12", detail: "分岐反応で生成される中間糖鎖です。" },
-  { id: "G2", label: "G2", x: 360, y: 260, kind: "glycan", color: "#dc2626", detail: "中心的な中間糖鎖。複数の終点糖鎖へ流れます。" },
-  { id: "G3", label: "G3", x: 360, y: 375, kind: "glycan", color: "#7c3aed", detail: "別経路で生成される中間糖鎖です。" },
-  { id: "G4", label: "G4", x: 530, y: 120, kind: "glycan", color: "#0891b2", detail: "末端修飾前の糖鎖候補です。" },
-  { id: "G5", label: "G5", x: 530, y: 260, kind: "glycan", color: "#65a30d", detail: "反応容量の影響を受けやすい中間糖鎖です。" },
-  { id: "G6", label: "G6", x: 530, y: 400, kind: "glycan", color: "#ea580c", detail: "下流の終点糖鎖に接続する中間糖鎖です。" },
-  { id: "T1", label: "T1", x: 735, y: 70, kind: "sink", color: "#0f766e", detail: "終点糖鎖。予測分布の1つとして集計されます。" },
-  { id: "T2", label: "T2", x: 735, y: 165, kind: "sink", color: "#0f766e", detail: "終点糖鎖。組織プリセットで流量が変わります。" },
-  { id: "T3", label: "T3", x: 735, y: 260, kind: "sink", color: "#0f766e", detail: "終点糖鎖。中心経路から多く流れる候補です。" },
-  { id: "T4", label: "T4", x: 735, y: 355, kind: "sink", color: "#0f766e", detail: "終点糖鎖。末端修飾の強さに反応します。" },
-  { id: "T5", label: "T5", x: 735, y: 450, kind: "sink", color: "#0f766e", detail: "終点糖鎖。別経路由来の生成量を示します。" },
+const modules = [
+  {
+    id: "input",
+    label: "IN",
+    name: "Substrate Input",
+    x: 88,
+    y: 316,
+    color: "#60a5fa",
+    shape: "diamond",
+    detail: "細胞に入る材料や前駆体を表す入口です。",
+  },
+  {
+    id: "core",
+    label: "CORE",
+    name: "Core Biosynthesis",
+    x: 258,
+    y: 316,
+    color: "#2dd4bf",
+    shape: "circle",
+    detail: "生命現象の中心となる変換過程です。ここから複数の反応経路に分岐します。",
+  },
+  {
+    id: "branchA",
+    label: "A",
+    name: "Branching Route A",
+    x: 438,
+    y: 172,
+    color: "#f6c453",
+    shape: "circle",
+    detail: "栄養供給に反応しやすい分岐経路です。",
+  },
+  {
+    id: "branchB",
+    label: "B",
+    name: "Branching Route B",
+    x: 438,
+    y: 316,
+    color: "#7ddf64",
+    shape: "rect",
+    detail: "酵素活性の変化が強く反映される経路です。",
+  },
+  {
+    id: "branchC",
+    label: "C",
+    name: "Stress Response Route",
+    x: 438,
+    y: 460,
+    color: "#ff6b5f",
+    shape: "circle",
+    detail: "ストレス条件で相対的に流れが増える補償経路です。",
+  },
+  {
+    id: "edit1",
+    label: "E1",
+    name: "Modification Module",
+    x: 590,
+    y: 236,
+    color: "#f472b6",
+    shape: "hex",
+    detail: "生成物の性質を変える修飾過程です。",
+  },
+  {
+    id: "edit2",
+    label: "E2",
+    name: "Quality Control",
+    x: 590,
+    y: 398,
+    color: "#a3e635",
+    shape: "hex",
+    detail: "生成物の偏りを調整する品質管理のような過程です。",
+  },
+  {
+    id: "stable",
+    label: "S",
+    name: "Stable Product",
+    x: 790,
+    y: 156,
+    color: "#2dd4bf",
+    shape: "rect",
+    detail: "安定的に生成される表現型です。",
+  },
+  {
+    id: "adaptive",
+    label: "AD",
+    name: "Adaptive Product",
+    x: 790,
+    y: 316,
+    color: "#f6c453",
+    shape: "rect",
+    detail: "環境変化に応答して増減する表現型です。",
+  },
+  {
+    id: "stressOut",
+    label: "ST",
+    name: "Stress Product",
+    x: 790,
+    y: 476,
+    color: "#ff6b5f",
+    shape: "rect",
+    detail: "ストレスや阻害の影響が強いと増えやすい表現型です。",
+  },
 ];
 
-const edgeTemplates = [
-  { from: "S", to: "G0", base: 120, type: "source", label: "供給" },
-  { from: "G0", to: "G1", base: 52, type: "branch", label: "E1" },
-  { from: "G0", to: "G2", base: 74, type: "branch", label: "E2" },
-  { from: "G0", to: "G3", base: 46, type: "branch", label: "E3" },
-  { from: "G1", to: "G4", base: 42, type: "branch", label: "E4" },
-  { from: "G1", to: "G5", base: 34, type: "branch", label: "E5" },
-  { from: "G2", to: "G5", base: 68, type: "branch", label: "E6" },
-  { from: "G3", to: "G5", base: 28, type: "branch", label: "E7" },
-  { from: "G3", to: "G6", base: 44, type: "branch", label: "E8" },
-  { from: "G4", to: "T1", base: 32, type: "terminal", label: "M1" },
-  { from: "G4", to: "T2", base: 48, type: "terminal", label: "M2" },
-  { from: "G5", to: "T2", base: 34, type: "terminal", label: "M3" },
-  { from: "G5", to: "T3", base: 58, type: "terminal", label: "M4" },
-  { from: "G5", to: "T4", base: 36, type: "terminal", label: "M5" },
-  { from: "G6", to: "T4", base: 42, type: "terminal", label: "M6" },
-  { from: "G6", to: "T5", base: 52, type: "terminal", label: "M7" },
+const links = [
+  { from: "input", to: "core", base: 120, mode: "supply", label: "supply", color: "#60a5fa" },
+  { from: "core", to: "branchA", base: 52, mode: "nutrient", label: "route A", color: "#f6c453" },
+  { from: "core", to: "branchB", base: 74, mode: "enzyme", label: "route B", color: "#7ddf64" },
+  { from: "core", to: "branchC", base: 42, mode: "stress", label: "route C", color: "#ff6b5f" },
+  { from: "branchA", to: "edit1", base: 58, mode: "enzyme", label: "modify", color: "#f472b6" },
+  { from: "branchA", to: "stable", base: 32, mode: "nutrient", label: "direct", color: "#2dd4bf" },
+  { from: "branchB", to: "edit1", base: 46, mode: "enzyme", label: "edit", color: "#f472b6" },
+  { from: "branchB", to: "edit2", base: 44, mode: "quality", label: "check", color: "#a3e635" },
+  { from: "branchC", to: "edit2", base: 68, mode: "stress", label: "repair", color: "#a3e635" },
+  { from: "edit1", to: "stable", base: 38, mode: "terminal", label: "finish", color: "#2dd4bf" },
+  { from: "edit1", to: "adaptive", base: 60, mode: "terminal", label: "adapt", color: "#f6c453" },
+  { from: "edit2", to: "adaptive", base: 44, mode: "quality", label: "balance", color: "#f6c453" },
+  { from: "edit2", to: "stressOut", base: 54, mode: "stress", label: "stress", color: "#ff6b5f" },
 ];
 
 const state = {
-  preset: "pancreas",
-  selectedNode: "G0",
+  preset: "balanced",
+  selected: "core",
+  interventions: {},
+  pulse: 0,
 };
 
-const sourceInput = document.querySelector("#sourceInput");
-const branchInput = document.querySelector("#branchInput");
-const terminalInput = document.querySelector("#terminalInput");
-const sourceOutput = document.querySelector("#sourceOutput");
-const branchOutput = document.querySelector("#branchOutput");
-const terminalOutput = document.querySelector("#terminalOutput");
+const inputs = {
+  nutrient: document.querySelector("#nutrientInput"),
+  enzyme: document.querySelector("#enzymeInput"),
+  stress: document.querySelector("#stressInput"),
+  inhibitor: document.querySelector("#inhibitorInput"),
+};
+
+const outputs = {
+  nutrient: document.querySelector("#nutrientOutput"),
+  enzyme: document.querySelector("#enzymeOutput"),
+  stress: document.querySelector("#stressOutput"),
+  inhibitor: document.querySelector("#inhibitorOutput"),
+};
+
 const networkSvg = document.querySelector("#networkSvg");
-const totalFlowEl = document.querySelector("#totalFlow");
-const nodeDetail = document.querySelector("#nodeDetail");
-const barChart = document.querySelector("#barChart");
+const nodeReadout = document.querySelector("#nodeReadout");
+const phenotypeChart = document.querySelector("#phenotypeChart");
+const totalFlux = document.querySelector("#totalFlux");
+const diversityScore = document.querySelector("#diversityScore");
+const efficiencyScore = document.querySelector("#efficiencyScore");
+const systemState = document.querySelector("#systemState");
 const insightText = document.querySelector("#insightText");
 
-function capacity(edge) {
-  const source = Number(sourceInput.value) / 100;
-  const branch = Number(branchInput.value) / 100;
-  const terminal = Number(terminalInput.value) / 100;
-  const bias = presets[state.preset].bias[edge.to] ?? 1;
-  if (edge.type === "source") return edge.base * source;
-  if (edge.type === "branch") return edge.base * branch;
-  return edge.base * terminal * bias;
+function value(key) {
+  return Number(inputs[key].value);
 }
 
-function calculateFlow() {
-  const outgoing = new Map();
-  const incoming = new Map([["S", Number(sourceInput.value)]]);
-  const edgeFlows = new Map();
+function factorFor(link) {
+  const nutrient = value("nutrient") / 100;
+  const enzyme = value("enzyme") / 100;
+  const stress = value("stress") / 100;
+  const inhibitor = value("inhibitor") / 100;
+  const targetIntervention = state.interventions[link.to] ?? 0;
+  const sourceIntervention = state.interventions[link.from] ?? 0;
+  const intervention = 1 + (targetIntervention + sourceIntervention) * 0.22;
+  const pulse = 1 + state.pulse * 0.28;
 
-  edgeTemplates.forEach((edge, index) => {
-    const enriched = { ...edge, index, cap: capacity(edge) };
-    if (!outgoing.has(edge.from)) outgoing.set(edge.from, []);
-    outgoing.get(edge.from).push(enriched);
+  const modes = {
+    supply: nutrient * (1 - inhibitor * 0.18),
+    nutrient: nutrient * (1 - stress * 0.12),
+    enzyme: enzyme * (1 - inhibitor * 0.44),
+    stress: 0.45 + stress * 0.82 + inhibitor * 0.18,
+    quality: enzyme * (1 - stress * 0.22) + nutrient * 0.18,
+    terminal: enzyme * (1 - inhibitor * 0.26) + nutrient * 0.12,
+  };
+
+  return Math.max(0.05, modes[link.mode] * intervention * pulse);
+}
+
+function calculateModel() {
+  const outgoing = new Map();
+  const incoming = new Map([["input", value("nutrient")]]);
+  const flows = new Map();
+  const capacities = new Map();
+  const stressLoss = value("stress") / 100;
+  const inhibitorLoss = value("inhibitor") / 100;
+
+  links.forEach((link, index) => {
+    const capacity = link.base * factorFor(link);
+    capacities.set(index, capacity);
+    if (!outgoing.has(link.from)) outgoing.set(link.from, []);
+    outgoing.get(link.from).push({ ...link, index, capacity });
   });
 
-  ["S", "G0", "G1", "G2", "G3", "G4", "G5", "G6"].forEach((nodeId) => {
-    const available = incoming.get(nodeId) ?? 0;
-    const edges = outgoing.get(nodeId) ?? [];
-    const totalCapacity = edges.reduce((sum, edge) => sum + edge.cap, 0);
+  ["input", "core", "branchA", "branchB", "branchC", "edit1", "edit2"].forEach((id) => {
+    const rawAvailable = incoming.get(id) ?? 0;
+    const isStressRoute = id === "branchC" || id === "edit2";
+    const resilience = isStressRoute ? 0.48 : 1;
+    const retention = Math.max(0.22, 1 - stressLoss * 0.16 * resilience - inhibitorLoss * 0.24 * resilience);
+    const available = rawAvailable * retention;
+    const edges = outgoing.get(id) ?? [];
+    const totalCapacity = edges.reduce((sum, edge) => sum + edge.capacity, 0);
     if (!available || !totalCapacity) return;
 
     edges.forEach((edge) => {
-      const proposed = available * (edge.cap / totalCapacity);
-      const flow = Math.min(edge.cap, proposed);
-      edgeFlows.set(edge.index, flow);
+      const share = edge.capacity / totalCapacity;
+      const flow = Math.min(edge.capacity, available * share);
+      flows.set(edge.index, flow);
       incoming.set(edge.to, (incoming.get(edge.to) ?? 0) + flow);
     });
   });
 
-  const sinks = Object.fromEntries(["T1", "T2", "T3", "T4", "T5"].map((sink) => [sink, incoming.get(sink) ?? 0]));
-  const total = Object.values(sinks).reduce((sum, value) => sum + value, 0);
-  return { total, edgeFlows, sinks };
+  const phenotypes = {
+    Stable: incoming.get("stable") ?? 0,
+    Adaptive: incoming.get("adaptive") ?? 0,
+    Stress: incoming.get("stressOut") ?? 0,
+  };
+  const total = Object.values(phenotypes).reduce((sum, next) => sum + next, 0);
+  const proportions = Object.values(phenotypes).map((item) => item / Math.max(total, 1));
+  const diversity = 1 - proportions.reduce((sum, item) => sum + item * item, 0);
+  const efficiency = total / Math.max(value("nutrient"), 1);
+
+  return { flows, capacities, phenotypes, total, diversity, efficiency };
 }
 
-function pathForEdge(edge) {
-  const from = nodes.find((node) => node.id === edge.from);
-  const to = nodes.find((node) => node.id === edge.to);
+function nodeById(id) {
+  return modules.find((module) => module.id === id);
+}
+
+function pathFor(link) {
+  const from = nodeById(link.from);
+  const to = nodeById(link.to);
   const dx = Math.abs(to.x - from.x);
-  const curve = dx * 0.42;
-  return `M ${from.x} ${from.y} C ${from.x + curve} ${from.y}, ${to.x - curve} ${to.y}, ${to.x} ${to.y}`;
+  const dy = to.y - from.y;
+  const curve = Math.max(84, dx * 0.42);
+  return `M ${from.x} ${from.y} C ${from.x + curve} ${from.y + dy * 0.08}, ${to.x - curve} ${to.y - dy * 0.08}, ${to.x} ${to.y}`;
+}
+
+function createShape(module) {
+  if (module.shape === "rect") {
+    const rect = document.createElementNS("http://www.w3.org/2000/svg", "rect");
+    rect.setAttribute("x", module.x - 35);
+    rect.setAttribute("y", module.y - 27);
+    rect.setAttribute("width", "70");
+    rect.setAttribute("height", "54");
+    rect.setAttribute("rx", "8");
+    return rect;
+  }
+  if (module.shape === "diamond") {
+    const diamond = document.createElementNS("http://www.w3.org/2000/svg", "polygon");
+    diamond.setAttribute("points", `${module.x},${module.y - 34} ${module.x + 34},${module.y} ${module.x},${module.y + 34} ${module.x - 34},${module.y}`);
+    return diamond;
+  }
+  if (module.shape === "hex") {
+    const hex = document.createElementNS("http://www.w3.org/2000/svg", "polygon");
+    hex.setAttribute("points", `${module.x - 32},${module.y - 18} ${module.x},${module.y - 36} ${module.x + 32},${module.y - 18} ${module.x + 32},${module.y + 18} ${module.x},${module.y + 36} ${module.x - 32},${module.y + 18}`);
+    return hex;
+  }
+  const circle = document.createElementNS("http://www.w3.org/2000/svg", "circle");
+  circle.setAttribute("cx", module.x);
+  circle.setAttribute("cy", module.y);
+  circle.setAttribute("r", "34");
+  return circle;
 }
 
 function drawNetwork(result) {
-  networkSvg.innerHTML = `
-    <defs>
-      <marker id="arrow" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
-        <path d="M 0 0 L 10 5 L 0 10 z" fill="#8ba0a3"></path>
-      </marker>
-    </defs>
-  `;
+  networkSvg.innerHTML = "";
 
-  edgeTemplates.forEach((edge, index) => {
+  [120, 210, 300].forEach((radius) => {
+    const ring = document.createElementNS("http://www.w3.org/2000/svg", "circle");
+    ring.setAttribute("cx", "490");
+    ring.setAttribute("cy", "310");
+    ring.setAttribute("r", String(radius));
+    ring.setAttribute("class", "field-ring");
+    networkSvg.append(ring);
+  });
+
+  links.forEach((link, index) => {
+    const amount = result.flows.get(index) ?? 0;
+    const path = pathFor(link);
+    const width = 2 + Math.min(18, amount / 6);
+    const opacity = 0.18 + Math.min(0.82, amount / 90);
+
     const group = document.createElementNS("http://www.w3.org/2000/svg", "g");
+    const shadow = document.createElementNS("http://www.w3.org/2000/svg", "path");
     const base = document.createElementNS("http://www.w3.org/2000/svg", "path");
     const flow = document.createElementNS("http://www.w3.org/2000/svg", "path");
     const label = document.createElementNS("http://www.w3.org/2000/svg", "text");
-    const from = nodes.find((node) => node.id === edge.from);
-    const to = nodes.find((node) => node.id === edge.to);
-    const amount = result.edgeFlows.get(index) ?? 0;
-    const width = 2 + Math.min(18, amount / 4.8);
-    const path = pathForEdge(edge);
 
+    shadow.setAttribute("d", path);
+    shadow.setAttribute("class", "edge-shadow");
     base.setAttribute("d", path);
     base.setAttribute("class", "edge-base");
-    base.setAttribute("stroke-width", "18");
-    base.setAttribute("fill", "none");
-    base.setAttribute("marker-end", "url(#arrow)");
-
     flow.setAttribute("d", path);
     flow.setAttribute("class", "edge-flow");
+    flow.setAttribute("stroke", link.color);
     flow.setAttribute("stroke-width", width.toFixed(1));
-    flow.setAttribute("fill", "none");
-    flow.setAttribute("opacity", amount > 0.1 ? "0.86" : "0.12");
+    flow.setAttribute("opacity", opacity.toFixed(2));
 
-    label.setAttribute("x", String((from.x + to.x) / 2));
-    label.setAttribute("y", String((from.y + to.y) / 2 - 8));
+    const from = nodeById(link.from);
+    const to = nodeById(link.to);
+    label.setAttribute("x", (from.x + to.x) / 2);
+    label.setAttribute("y", (from.y + to.y) / 2 - 10);
     label.setAttribute("text-anchor", "middle");
     label.setAttribute("class", "edge-label");
-    label.textContent = `${edge.label} ${amount.toFixed(0)}`;
+    label.textContent = `${link.label} ${amount.toFixed(0)}`;
 
-    group.append(base, flow, label);
+    group.append(shadow, base, flow, label);
+
+    const particleCount = amount > 70 ? 3 : amount > 32 ? 2 : amount > 8 ? 1 : 0;
+    for (let i = 0; i < particleCount; i += 1) {
+      const particle = document.createElementNS("http://www.w3.org/2000/svg", "circle");
+      const animate = document.createElementNS("http://www.w3.org/2000/svg", "animateMotion");
+      particle.setAttribute("r", String(3.5 + Math.min(4, amount / 35)));
+      particle.setAttribute("fill", link.color);
+      particle.setAttribute("class", "particle");
+      particle.style.color = link.color;
+      animate.setAttribute("dur", `${Math.max(1.4, 4.2 - amount / 38).toFixed(2)}s`);
+      animate.setAttribute("begin", `${i * 0.42}s`);
+      animate.setAttribute("repeatCount", "indefinite");
+      animate.setAttribute("path", path);
+      particle.append(animate);
+      group.append(particle);
+    }
+
     networkSvg.append(group);
   });
 
-  nodes.forEach((node) => {
+  modules.forEach((module) => {
     const group = document.createElementNS("http://www.w3.org/2000/svg", "g");
-    group.setAttribute("class", `node ${state.selectedNode === node.id ? "active" : ""}`);
+    const intervention = state.interventions[module.id] ?? 0;
+    const shape = createShape(module);
+    const text = document.createElementNS("http://www.w3.org/2000/svg", "text");
+
+    group.setAttribute("class", [
+      "bio-node",
+      state.selected === module.id ? "active" : "",
+      intervention > 0 ? "boosted" : "",
+      intervention < 0 ? "inhibited" : "",
+    ].join(" "));
     group.setAttribute("tabindex", "0");
     group.setAttribute("role", "button");
-    group.setAttribute("aria-label", `${node.label} ${node.detail}`);
-    group.dataset.node = node.id;
+    group.setAttribute("aria-label", `${module.name}: ${module.detail}`);
+    group.dataset.node = module.id;
 
-    let shape;
-    if (node.kind === "source") {
-      shape = document.createElementNS("http://www.w3.org/2000/svg", "polygon");
-      shape.setAttribute("points", `${node.x},${node.y - 28} ${node.x + 28},${node.y} ${node.x},${node.y + 28} ${node.x - 28},${node.y}`);
-    } else if (node.kind === "sink") {
-      shape = document.createElementNS("http://www.w3.org/2000/svg", "rect");
-      shape.setAttribute("x", String(node.x - 26));
-      shape.setAttribute("y", String(node.y - 26));
-      shape.setAttribute("width", "52");
-      shape.setAttribute("height", "52");
-      shape.setAttribute("rx", "9");
-    } else {
-      shape = document.createElementNS("http://www.w3.org/2000/svg", "circle");
-      shape.setAttribute("cx", String(node.x));
-      shape.setAttribute("cy", String(node.y));
-      shape.setAttribute("r", "27");
-    }
-    shape.setAttribute("fill", node.color);
-
-    const text = document.createElementNS("http://www.w3.org/2000/svg", "text");
-    text.setAttribute("x", String(node.x));
-    text.setAttribute("y", String(node.y + 5));
-    text.setAttribute("text-anchor", "middle");
-    text.textContent = node.label;
+    shape.setAttribute("fill", module.color);
+    text.setAttribute("x", module.x);
+    text.setAttribute("y", module.y + 1);
+    text.textContent = module.label;
 
     group.append(shape, text);
-    group.addEventListener("click", () => selectNode(node.id));
+    group.addEventListener("click", () => cycleIntervention(module.id));
     group.addEventListener("keydown", (event) => {
-      if (event.key === "Enter" || event.key === " ") selectNode(node.id);
+      if (event.key === "Enter" || event.key === " ") cycleIntervention(module.id);
     });
     networkSvg.append(group);
   });
 }
 
-function selectNode(id) {
-  state.selectedNode = id;
-  const node = nodes.find((item) => item.id === id);
-  nodeDetail.innerHTML = `
-    <span class="detail-label">selected node</span>
-    <strong>${node.label}</strong>
-    <p>${node.detail}</p>
-  `;
+function cycleIntervention(id) {
+  const current = state.interventions[id] ?? 0;
+  const next = current === 0 ? 1 : current === 1 ? -1 : 0;
+  if (next === 0) {
+    delete state.interventions[id];
+  } else {
+    state.interventions[id] = next;
+  }
+  state.selected = id;
   update();
 }
 
-function updateChart(result) {
-  const entries = Object.entries(result.sinks);
-  const max = Math.max(...entries.map(([, value]) => value), 1);
-  barChart.innerHTML = "";
-  entries.forEach(([sink, value]) => {
-    const row = document.createElement("div");
-    row.className = "bar-row";
-    row.innerHTML = `
-      <span class="bar-label">${sink}</span>
-      <span class="bar-track"><span class="bar-fill" style="width: ${(value / max) * 100}%"></span></span>
-      <span class="bar-value">${value.toFixed(0)}</span>
-    `;
-    barChart.append(row);
-  });
-
-  const [dominant] = entries.reduce((best, current) => (current[1] > best[1] ? current : best), entries[0]);
-  insightText.textContent = `${presets[state.preset].label}プリセットでは ${dominant} に流量が集まりやすい条件です。スライダーを動かすと、分岐反応と末端修飾のバランスが分布に反映されます。`;
+function updateReadout() {
+  const module = nodeById(state.selected);
+  const intervention = state.interventions[module.id] ?? 0;
+  const status = intervention > 0 ? "Boosted" : intervention < 0 ? "Inhibited" : "Normal";
+  nodeReadout.innerHTML = `
+    <span>selected module</span>
+    <strong>${module.name} - ${status}</strong>
+    <p>${module.detail}</p>
+  `;
 }
 
-function updateOutputs() {
-  sourceOutput.value = sourceInput.value;
-  branchOutput.value = branchInput.value;
-  terminalOutput.value = terminalInput.value;
+function updateChart(result) {
+  const entries = Object.entries(result.phenotypes);
+  const max = Math.max(...entries.map(([, amount]) => amount), 1);
+  const colors = {
+    Stable: "#2dd4bf",
+    Adaptive: "#f6c453",
+    Stress: "#ff6b5f",
+  };
+  phenotypeChart.innerHTML = "";
+  entries.forEach(([label, amount]) => {
+    const row = document.createElement("div");
+    row.className = "phenotype-row";
+    row.innerHTML = `
+      <strong>${label}</strong>
+      <span class="track"><span class="fill" style="width: ${(amount / max) * 100}%; background: ${colors[label]}"></span></span>
+      <span>${amount.toFixed(0)}</span>
+    `;
+    phenotypeChart.append(row);
+  });
+}
+
+function updateScores(result) {
+  totalFlux.textContent = result.total.toFixed(0);
+  diversityScore.textContent = Math.round(result.diversity * 100);
+  efficiencyScore.textContent = `${Math.round(result.efficiency * 100)}%`;
+
+  const stressRatio = result.phenotypes.Stress / Math.max(result.total, 1);
+  const adaptiveRatio = result.phenotypes.Adaptive / Math.max(result.total, 1);
+  const stateLabel = stressRatio > 0.42 ? "Stressed" : adaptiveRatio > 0.42 ? "Adaptive" : result.efficiency > 0.86 ? "Efficient" : "Stable";
+  systemState.textContent = stateLabel;
+
+  const topPhenotype = Object.entries(result.phenotypes).reduce((best, next) => (next[1] > best[1] ? next : best))[0];
+  insightText.textContent =
+    `${topPhenotype} が優勢です。栄養・酵素・ストレス・阻害の条件を動かすと、同じ生命現象モデルでも流れの太さと生成物の偏りが変わります。`;
+}
+
+function syncOutputs() {
+  Object.entries(inputs).forEach(([key, input]) => {
+    outputs[key].value = input.value;
+  });
 }
 
 function update() {
-  updateOutputs();
-  const result = calculateFlow();
-  totalFlowEl.textContent = result.total.toFixed(1);
+  if (state.pulse > 0) state.pulse = Math.max(0, state.pulse - 0.08);
+  syncOutputs();
+  const result = calculateModel();
   drawNetwork(result);
+  updateReadout();
   updateChart(result);
+  updateScores(result);
 }
 
 function applyPreset(name) {
   state.preset = name;
   const preset = presets[name];
-  sourceInput.value = preset.source;
-  branchInput.value = preset.branch;
-  terminalInput.value = preset.terminal;
-  document.querySelectorAll(".segment").forEach((button) => {
+  Object.entries(preset).forEach(([key, next]) => {
+    inputs[key].value = next;
+  });
+  document.querySelectorAll(".preset").forEach((button) => {
     button.classList.toggle("active", button.dataset.preset === name);
   });
   update();
 }
 
-document.querySelectorAll(".segment").forEach((button) => {
+document.querySelectorAll(".preset").forEach((button) => {
   button.addEventListener("click", () => applyPreset(button.dataset.preset));
 });
 
-[sourceInput, branchInput, terminalInput].forEach((input) => {
+Object.values(inputs).forEach((input) => {
   input.addEventListener("input", update);
 });
 
-document.querySelector("#resetButton").addEventListener("click", () => applyPreset(state.preset));
+document.querySelector("#pulseButton").addEventListener("click", () => {
+  state.pulse = 1;
+  update();
+  window.setTimeout(update, 260);
+  window.setTimeout(update, 520);
+  window.setTimeout(update, 780);
+});
 
-applyPreset("pancreas");
+document.querySelector("#resetButton").addEventListener("click", () => {
+  state.interventions = {};
+  state.selected = "core";
+  state.pulse = 0;
+  applyPreset(state.preset);
+});
+
+applyPreset("balanced");
