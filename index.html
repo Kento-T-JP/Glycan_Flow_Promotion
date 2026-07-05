@@ -8,7 +8,7 @@
       name="description"
       content="糖鎖の流れを直接操作し、最終的な糖鎖A/B/Cの分布変化を観察する静的Webアプリケーション"
     />
-    <link rel="stylesheet" href="styles.css?v=total-size-v1" />
+    <link rel="stylesheet" href="styles.css?v=focus-ring-v1" />
   </head>
   <body>
     <a class="skip-link" href="#networkSvg">ネットワークへ移動</a>
@@ -106,36 +106,6 @@
           </svg>
         </section>
 
-        <section class="edge-editor" aria-labelledby="edge-editor-title">
-          <div class="edge-summary">
-            <span>選択中の線</span>
-            <h2 id="edge-editor-title">線を選択</h2>
-            <p id="edgeMeta">ネットワーク上の線をクリック</p>
-          </div>
-
-          <label class="capacity-slider" for="edgeCapacityInput">
-            <span>通しやすさ</span>
-            <output id="edgeCapacityOutput" for="edgeCapacityInput" aria-hidden="true"></output>
-            <input id="edgeCapacityInput" type="range" min="0" max="200" value="100" />
-          </label>
-
-          <div class="edge-actions" aria-label="流れやすさ操作">
-            <button id="edgeKoButton" class="danger-action" type="button">停止</button>
-            <button id="edgeMinusButton" class="icon-action" type="button" aria-label="流れやすさを下げる">-</button>
-            <button id="edgePlusButton" class="icon-action" type="button" aria-label="流れやすさを上げる">+</button>
-            <button id="edgeResetButton" class="secondary-action" type="button" aria-label="選択中の線だけを標準値に戻す">標準</button>
-            <button class="secondary-action" id="undoButton" type="button" aria-label="直前の操作を取り消す" disabled>取消</button>
-            <button class="secondary-action" id="resetButton" type="button" aria-label="全て標準に戻す">リセット</button>
-          </div>
-
-          <div class="edge-readout" aria-live="polite">
-            <span>流量</span>
-            <strong id="selectedEdgeFlow">0</strong>
-            <span>差分</span>
-            <strong id="selectedEdgeDelta">0</strong>
-          </div>
-        </section>
-
         <section class="dock-section game-panel" aria-labelledby="game-title">
           <div class="game-head">
             <div>
@@ -165,6 +135,36 @@
             <button id="gameStartButton" class="primary-action" type="button">Start</button>
             <button id="gameRetryButton" class="primary-action" type="button" hidden>Retry</button>
             <button id="gameQuitButton" class="secondary-action" type="button" hidden>Quit</button>
+          </div>
+        </section>
+
+        <section class="edge-editor" aria-labelledby="edge-editor-title">
+          <div class="edge-summary">
+            <span>選択中の線</span>
+            <h2 id="edge-editor-title">線を選択</h2>
+            <p id="edgeMeta">ネットワーク上の線をクリック</p>
+          </div>
+
+          <label class="capacity-slider" for="edgeCapacityInput">
+            <span>通しやすさ</span>
+            <output id="edgeCapacityOutput" for="edgeCapacityInput" aria-hidden="true"></output>
+            <input id="edgeCapacityInput" type="range" min="0" max="200" value="100" />
+          </label>
+
+          <div class="edge-actions" aria-label="流れやすさ操作">
+            <button id="edgeKoButton" class="danger-action" type="button">停止</button>
+            <button id="edgeMinusButton" class="icon-action" type="button" aria-label="流れやすさを下げる">-</button>
+            <button id="edgePlusButton" class="icon-action" type="button" aria-label="流れやすさを上げる">+</button>
+            <button id="edgeResetButton" class="secondary-action" type="button" aria-label="選択中の線だけを標準値に戻す">標準</button>
+            <button class="secondary-action" id="undoButton" type="button" aria-label="直前の操作を取り消す" disabled>取消</button>
+            <button class="secondary-action" id="resetButton" type="button" aria-label="全て標準に戻す">リセット</button>
+          </div>
+
+          <div class="edge-readout" aria-live="polite">
+            <span>流量</span>
+            <strong id="selectedEdgeFlow">0</strong>
+            <span>差分</span>
+            <strong id="selectedEdgeDelta">0</strong>
           </div>
         </section>
 

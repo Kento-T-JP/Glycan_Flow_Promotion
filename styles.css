@@ -232,8 +232,8 @@ h2 {
 
 .section-title span {
   color: var(--muted);
-  font-size: 0.72rem;
-  font-weight: 800;
+  font-size: 1rem;
+  font-weight: 850;
   text-transform: uppercase;
 }
 
@@ -297,8 +297,8 @@ h2 {
   display: block;
   margin-bottom: 4px;
   color: var(--muted);
-  font-size: 0.72rem;
-  font-weight: 800;
+  font-size: 1rem;
+  font-weight: 850;
   text-transform: uppercase;
 }
 
@@ -1159,6 +1159,15 @@ h2 {
   cursor: pointer;
 }
 
+.bio-edge:focus {
+  outline: none;
+}
+
+.bio-edge:focus-visible .edge-base {
+  stroke: var(--primary);
+  stroke-width: 11;
+}
+
 .edge-shadow {
   stroke: rgba(0, 0, 0, 0.5);
   stroke-width: 15;
@@ -1299,8 +1308,8 @@ h2 {
 
 .edge-hint span {
   color: var(--primary);
-  font-size: 0.72rem;
-  font-weight: 800;
+  font-size: 1rem;
+  font-weight: 850;
   text-transform: uppercase;
 }
 
@@ -1493,9 +1502,9 @@ h2 {
   border-top: 1px solid var(--line);
   padding-top: 20px;
   color: var(--primary);
-  font-size: 0.72rem;
+  font-size: 1.02rem;
   font-weight: 850;
-  letter-spacing: 0.08em;
+  letter-spacing: 0.04em;
   text-transform: uppercase;
 }
 
