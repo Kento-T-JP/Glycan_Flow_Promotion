@@ -303,9 +303,9 @@ function activeGameTarget() {
 }
 
 function randomGameTarget() {
-  const raw = terminalOrder.map(() => 18 + Math.random() * 64);
+  const raw = terminalOrder.map(() => 10 + Math.random() * 80);
   const total = raw.reduce((sum, value) => sum + value, 0);
-  const rounded = raw.map((value) => Math.max(15, Math.round((value / total) * 100)));
+  const rounded = raw.map((value) => Math.max(5, Math.round((value / total) * 100)));
   const correction = 100 - rounded.reduce((sum, value) => sum + value, 0);
   rounded[rounded.indexOf(Math.max(...rounded))] += correction;
   return Object.fromEntries(terminalOrder.map((key, index) => [key, rounded[index] / 100]));
@@ -320,8 +320,8 @@ function scoreAgainstTarget(result) {
 }
 
 function verdictFor(score) {
-  if (score >= 85) return "Excellent";
-  if (score >= 65) return "Good";
+  if (score >= 90) return "Excellent";
+  if (score >= 75) return "Good";
   return "Try Again";
 }
 
