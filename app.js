@@ -17,7 +17,7 @@ const modelDefaults = {
 };
 
 const links = [
-  { id: "input_core", from: "input", to: "core", base: 120, mode: "supply", enzyme: "mannosidase", label: "E1", action: "入口を通す", color: "#79a7ff" },
+  { id: "input_core", from: "input", to: "core", base: 120, mode: "supply", label: "E1", action: "入口を通す", color: "#79a7ff" },
   { id: "core_high", from: "core", to: "high", base: 46, mode: "escape", label: "E2", action: "上側へ分ける", color: "#f3c34d" },
   { id: "core_branch", from: "core", to: "branch", base: 74, mode: "enzyme", enzyme: "mgat", label: "E3", action: "中央へ分ける", color: "#8de6a6" },
   { id: "core_stall", from: "core", to: "stall", base: 34, mode: "stall", label: "E4", action: "下側へ分ける", color: "#ff7a71" },
@@ -178,19 +178,20 @@ function calculateModel(inputModel = getCurrentModel()) {
     const edges = outgoing.get(id) ?? [];
     const nodeCapacity = edges.reduce((sum, edge) => {
       const toCapacity = downstreamCapacity.get(edge.to) ?? Infinity;
-      return sum + Math.min(edge.capacity, toCapacity);
+      return toCapacity > 0 ? sum + edge.capacity : sum;
     }, 0);
     downstreamCapacity.set(id, nodeCapacity);
   });
 
-  incoming.set("input", Math.min(model.nutrient, downstreamCapacity.get("input") ?? 0));
+  const sourceSupply = model.nutrient * (edgeCapacity("input_core", model) / 100);
+  incoming.set("input", (downstreamCapacity.get("input") ?? 0) > 0 ? sourceSupply : 0);
 
   nodeOrder.forEach((id) => {
     const available = incoming.get(id) ?? 0;
     const edges = outgoing.get(id) ?? [];
     const effectiveEdges = edges.map((edge) => ({
       ...edge,
-      effectiveCapacity: Math.min(edge.capacity, downstreamCapacity.get(edge.to) ?? Infinity),
+      effectiveCapacity: (downstreamCapacity.get(edge.to) ?? Infinity) > 0 ? edge.capacity : 0,
     }));
     const totalCapacity = effectiveEdges.reduce((sum, edge) => sum + edge.effectiveCapacity, 0);
     if (!available || totalCapacity <= 0) return;
