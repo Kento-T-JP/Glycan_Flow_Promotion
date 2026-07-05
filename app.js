@@ -6,9 +6,9 @@ const modules = [
   { id: "stall", label: "下側", name: "下側", x: 445, y: 475, color: "#ff7a71", shape: "circle" },
   { id: "extend", label: "上の中間", name: "上の中間", x: 635, y: 245, color: "#ee78bd", shape: "hex" },
   { id: "finish", label: "下の中間", name: "下の中間", x: 635, y: 405, color: "#bae75f", shape: "hex" },
-  { id: "stable", label: "A", name: "結果A", x: 865, y: 160, color: "#59d7c5", shape: "rect", terminal: "stable" },
-  { id: "adaptive", label: "B", name: "結果B", x: 865, y: 325, color: "#f3c34d", shape: "rect", terminal: "adaptive" },
-  { id: "stressOut", label: "C", name: "結果C", x: 865, y: 490, color: "#ff7a71", shape: "rect", terminal: "stress" },
+  { id: "stable", label: "糖鎖A", name: "糖鎖A", x: 865, y: 160, color: "#59d7c5", shape: "terminal", terminal: "stable" },
+  { id: "adaptive", label: "糖鎖B", name: "糖鎖B", x: 865, y: 325, color: "#f3c34d", shape: "terminal", terminal: "adaptive" },
+  { id: "stressOut", label: "糖鎖C", name: "糖鎖C", x: 865, y: 490, color: "#ff7a71", shape: "terminal", terminal: "stress" },
 ];
 
 const modelDefaults = {
@@ -22,20 +22,20 @@ const links = [
   { id: "core_branch", from: "core", to: "branch", base: 74, mode: "enzyme", enzyme: "mgat", label: "E3", action: "中央へ分ける", color: "#8de6a6" },
   { id: "core_stall", from: "core", to: "stall", base: 34, mode: "stall", label: "E4", action: "下側へ分ける", color: "#ff7a71" },
   { id: "high_branch", from: "high", to: "branch", base: 44, mode: "enzyme", enzyme: "mgat", label: "E5", action: "上側から中央へ戻す", color: "#8de6a6" },
-  { id: "high_stable", from: "high", to: "stable", base: 42, mode: "escape", label: "E6", action: "上側からAを作る", color: "#59d7c5" },
+  { id: "high_stable", from: "high", to: "stable", base: 42, mode: "escape", label: "E6", action: "上側から糖鎖Aを作る", color: "#59d7c5" },
   { id: "branch_extend", from: "branch", to: "extend", base: 58, mode: "enzyme", enzyme: "galt", label: "E7", action: "上の中間へ進める", color: "#ee78bd" },
   { id: "branch_finish", from: "branch", to: "finish", base: 38, mode: "enzyme", enzyme: "terminal", label: "E8", action: "下の中間へ進める", color: "#bae75f" },
   { id: "stall_finish", from: "stall", to: "finish", base: 40, mode: "transit", label: "E9", action: "下側から下の中間へ進める", color: "#bae75f" },
-  { id: "extend_stable", from: "extend", to: "stable", base: 26, mode: "escape", label: "E10", action: "上の中間からAを作る", color: "#59d7c5" },
-  { id: "extend_adaptive", from: "extend", to: "adaptive", base: 60, mode: "enzyme", enzyme: "galt", label: "E11", action: "上の中間からBを作る", color: "#f3c34d" },
-  { id: "finish_adaptive", from: "finish", to: "adaptive", base: 36, mode: "enzyme", enzyme: "terminal", label: "E12", action: "下の中間からBを作る", color: "#f3c34d" },
-  { id: "finish_stress", from: "finish", to: "stressOut", base: 58, mode: "enzyme", enzyme: "terminal", label: "E13", action: "Cを作る", color: "#ff7a71" },
+  { id: "extend_stable", from: "extend", to: "stable", base: 26, mode: "escape", label: "E10", action: "上の中間から糖鎖Aを作る", color: "#59d7c5" },
+  { id: "extend_adaptive", from: "extend", to: "adaptive", base: 60, mode: "enzyme", enzyme: "galt", label: "E11", action: "上の中間から糖鎖Bを作る", color: "#f3c34d" },
+  { id: "finish_adaptive", from: "finish", to: "adaptive", base: 36, mode: "enzyme", enzyme: "terminal", label: "E12", action: "下の中間から糖鎖Bを作る", color: "#f3c34d" },
+  { id: "finish_stress", from: "finish", to: "stressOut", base: 58, mode: "enzyme", enzyme: "terminal", label: "E13", action: "糖鎖Cを作る", color: "#ff7a71" },
 ];
 
 const phenotypeLabels = {
-  stable: { label: "A", sub: "結果A", color: "#59d7c5" },
-  adaptive: { label: "B", sub: "結果B", color: "#f3c34d" },
-  stress: { label: "C", sub: "結果C", color: "#ff7a71" },
+  stable: { label: "糖鎖A", gameLabel: "A", sub: "最終生成物", color: "#59d7c5" },
+  adaptive: { label: "糖鎖B", gameLabel: "B", sub: "最終生成物", color: "#f3c34d" },
+  stress: { label: "糖鎖C", gameLabel: "C", sub: "最終生成物", color: "#ff7a71" },
 };
 
 const nodeOrder = ["input", "core", "high", "branch", "stall", "extend", "finish"];
@@ -289,7 +289,7 @@ function gameHint(result) {
     return currentGap > largestGap ? current : largest;
   }, terminalOrder[0]);
   const direction = (result.proportions[key] ?? 0) < target[key] ? "増やす" : "減らす";
-  return `${phenotypeLabels[key].label}を${direction}`;
+  return `${phenotypeLabels[key].gameLabel}を${direction}`;
 }
 
 function nodeBoundaryOffset(module, ux = 1, uy = 0) {
@@ -301,6 +301,7 @@ function nodeBoundaryOffset(module, ux = 1, uy = 0) {
   }
   if (module.shape === "diamond") return 42;
   if (module.shape === "hex") return 42;
+  if (module.shape === "terminal") return 58;
   return 42;
 }
 
@@ -346,6 +347,18 @@ function createShape(module, scale = 1) {
     const hex = document.createElementNS("http://www.w3.org/2000/svg", "polygon");
     hex.setAttribute("points", `${module.x - rx},${module.y - ry * 0.5} ${module.x},${module.y - ry} ${module.x + rx},${module.y - ry * 0.5} ${module.x + rx},${module.y + ry * 0.5} ${module.x},${module.y + ry} ${module.x - rx},${module.y + ry * 0.5}`);
     return hex;
+  }
+  if (module.shape === "terminal") {
+    const width = 104 * scale;
+    const height = 66 * scale;
+    const left = module.x - width / 2;
+    const top = module.y - height / 2;
+    const right = module.x + width / 2;
+    const bottom = module.y + height / 2;
+    const radius = 18 * scale;
+    const terminal = document.createElementNS("http://www.w3.org/2000/svg", "path");
+    terminal.setAttribute("d", `M ${left + radius} ${top} H ${right - radius} Q ${right} ${top} ${right} ${top + radius} V ${bottom - radius} Q ${right} ${bottom} ${right - radius} ${bottom} H ${left + radius} Q ${left} ${bottom} ${left} ${bottom - radius} V ${top + radius} Q ${left} ${top} ${left + radius} ${top} Z`);
+    return terminal;
   }
   const circle = document.createElementNS("http://www.w3.org/2000/svg", "circle");
   circle.setAttribute("cx", module.x);
@@ -444,6 +457,7 @@ function ensureNetworkElements(result) {
     const title = svgElement("title");
 
     shape.setAttribute("fill", module.color);
+    group.style.setProperty("--node-color", module.color);
     shape.dataset.role = "shape";
     text.textContent = module.label;
     group.append(title, shape, text);
@@ -505,6 +519,7 @@ function drawNetwork(result, baseline) {
     const previousShape = group.querySelector("[data-role='shape']");
     const nextShape = createShape(module, terminalScale(module, result));
     nextShape.setAttribute("fill", module.color);
+    group.style.setProperty("--node-color", module.color);
     nextShape.dataset.role = "shape";
     previousShape.replaceWith(nextShape);
     group.querySelector("title").textContent = module.terminal ? `${module.name}: ${amount.toFixed(1)}` : module.name;
@@ -694,7 +709,7 @@ function syncGameTargets(result, target) {
       row.dataset.targetKey = key;
       row.style.setProperty("--type-color", meta.color);
       row.innerHTML = `
-        <b>${meta.label}</b>
+        <b>${meta.gameLabel}</b>
         <span class="game-target-track" aria-hidden="true">
           <span class="game-current-fill"></span>
           <span class="game-target-mark"></span>
