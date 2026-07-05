@@ -8,7 +8,7 @@
       name="description"
       content="糖鎖の流れを直接操作し、最終的な糖鎖A/B/Cの分布変化を観察する静的Webアプリケーション"
     />
-    <link rel="stylesheet" href="styles.css?v=prompt-polish-v1" />
+    <link rel="stylesheet" href="styles.css?v=wording-polish-v1" />
   </head>
   <body>
     <a class="skip-link" href="#networkSvg">ネットワークへ移動</a>
@@ -18,7 +18,7 @@
         <p class="eyebrow">Glycan Pathway Simulator</p>
         <h1>糖鎖の流れを、触って試す</h1>
         <p class="headline-message">糖鎖生物学 × 情報通信ネットワーク</p>
-        <p class="headline-support">糖鎖の生合成過程をネットワークフローとして体験するデモ</p>
+        <p class="headline-support">糖鎖の生合成過程(パスウェイ)をネットワークフローとして体験するデモ</p>
       </div>
       <div class="quick-guide" aria-label="基本操作">
         <span><b>1</b>線を選ぶ</span>
@@ -88,8 +88,8 @@
             <text class="visual-label" x="22" y="34">Biological Network</text>
           </svg>
           <div class="bridge-copy">
-            <strong>糖鎖の枝分かれを読む</strong>
-            <span>生物の構造を、流れを計算できるネットワークへ変換します</span>
+            <strong>糖鎖が作られる過程を読み解く</strong>
+            <span>糖鎖の生合成過程を、流れを計算できるネットワークへ変換します</span>
           </div>
           <div class="bridge-arrow" aria-hidden="true"><span>モデル化</span></div>
           <svg class="network-mini" viewBox="0 0 300 180" role="img" aria-label="糖鎖を抽象化したネットワークモデル">
@@ -184,7 +184,7 @@
                 <span>結果</span>
                 <strong id="totalFlux">0</strong>
               </div>
-              <h2 id="output-title">糖鎖A / 糖鎖B / 糖鎖C</h2>
+              <h2 id="output-title">糖鎖の分布</h2>
               <div id="phenotypeChart" class="phenotype-chart" aria-live="polite">
                 <div class="empty-state">Calculating</div>
               </div>

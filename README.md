@@ -1,35 +1,73 @@
-# Glycan Flow Promotion
+# Glycan Pathway Simulator
 
-糖鎖生合成、特にN型糖鎖がゴルジ体で処理される流れを、ネットワークとして直接操作する静的Webアプリケーションです。
+糖鎖の生合成過程を、ネットワークフローとして触って理解するためのWebアプリケーションです。
 
-Node は糖鎖、Edge は生合成反応、Edge Capacity は反応能力、Flow は糖鎖生成の流れを表します。ユーザーはネットワーク上のEdgeを選び、Capacityを増やす・減らす・止めることで、Flowと最終糖鎖分布の変化をリアルタイムに確認できます。
+このデモでは、糖鎖が作られていく流れを「線の太さ」「動く粒子」「最終分布の変化」として可視化します。ユーザーはネットワーク上の線を選び、通しやすさを変えることで、最終的に生成される糖鎖A / 糖鎖B / 糖鎖Cの割合がどう変わるかをリアルタイムに観察できます。
 
-## Local Preview
+## 体験できること
+
+- 線を選んで、反応の通しやすさを変える
+- 停止ボタンで、特定の反応を止める
+- 線の太さと粒子の動きで、流量の変化を見る
+- 糖鎖A / 糖鎖B / 糖鎖Cの分布を比較する
+- 30秒チャレンジで、目標割合に近づけるゲームとして試す
+
+## モデルの見方
+
+このアプリのネットワークは、研究内容を直感的に伝えるためのイメージです。実際の糖鎖構造や反応ネットワークを厳密に再現したものではありません。
+
+デモ内では、以下の対応で生合成の流れを表現しています。
+
+- Node: 糖鎖や生成途中の状態
+- Edge: 生合成反応
+- Edge Capacity: 反応の通しやすさ
+- Flow: 糖鎖生成の流れ
+- Terminal Node: 最終的に生成される糖鎖
+
+操作としては、酵素を止める・増やす・減らすことを、対応するEdge Capacityの変更として扱います。
+
+## 研究との関係
+
+実際の糖鎖ネットワークは、このデモよりはるかに大きく複雑です。手作業で条件を調整しながら全体の流れを理解するのは簡単ではありません。
+
+この研究では、数理最適化とコンピュータを活用し、大規模な糖鎖生成ネットワークの流れを効率的かつ精密に解析する手法の開発を目指しています。
+
+## ファイル構成
+
+```text
+.
+├── index.html   # 画面構造
+├── styles.css   # レイアウトと見た目
+├── app.js       # ネットワーク計算、描画、ゲームロジック
+└── README.md
+```
+
+外部ビルドツールは使っていません。GitHub Pagesでそのまま公開できる構成です。
+
+## ローカルで確認する
 
 ```bash
 python3 -m http.server 8000
 ```
 
-Then open:
+ブラウザで以下を開きます。
 
 ```text
 http://localhost:8000/
 ```
 
-## GitHub Pages
+## GitHub Pagesで公開する
 
-This repository is ready to publish from the repository root.
+GitHub Pagesで公開する場合は、リポジトリのルートをそのまま配信します。
 
-1. Open the repository on GitHub.
-2. Go to `Settings` -> `Pages`.
-3. Set `Source` to `Deploy from a branch`.
-4. Select `main` and `/ (root)`.
-5. Save the settings.
+1. GitHubでリポジトリを開く
+2. `Settings` -> `Pages` を開く
+3. `Source` を `Deploy from a branch` にする
+4. Branchを `main`、フォルダを `/ (root)` にする
+5. 保存する
 
-The app uses only static files:
+URL:https://kento-t-jp.github.io/Glycan_Flow_Promotion/
 
-- `index.html`
-- `styles.css`
-- `app.js`
+## 注意
 
-PDF files are intentionally ignored by Git.
+PDFファイルは `.gitignore` によりGit管理から除外しています。

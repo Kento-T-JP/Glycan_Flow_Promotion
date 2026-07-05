@@ -886,8 +886,8 @@ h2 {
   width: 72px;
   height: 64px;
   color: var(--primary);
-  font-size: 0.72rem;
-  font-weight: 820;
+  font-size: clamp(1rem, 1.5vw, 1.35rem);
+  font-weight: 900;
   letter-spacing: 0;
   text-align: center;
   background: transparent;
@@ -925,6 +925,7 @@ h2 {
   color: var(--primary);
   background: transparent;
   line-height: 1;
+  text-shadow: 0 0 18px rgba(100, 210, 255, 0.34);
 }
 
 .mini-edge {
