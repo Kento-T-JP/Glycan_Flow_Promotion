@@ -233,7 +233,8 @@ h2 {
 .section-title span {
   color: var(--muted);
   font-size: 1rem;
-  font-weight: 850;
+  font-weight: 700;
+  letter-spacing: 0.02em;
   text-transform: uppercase;
 }
 
@@ -298,7 +299,8 @@ h2 {
   margin-bottom: 4px;
   color: var(--muted);
   font-size: 1rem;
-  font-weight: 850;
+  font-weight: 700;
+  letter-spacing: 0.02em;
   text-transform: uppercase;
 }
 
@@ -430,6 +432,12 @@ h2 {
   color: var(--text);
   font-size: 1.18rem;
   font-weight: 820;
+}
+
+.stage-topline .eyebrow,
+.game-head .eyebrow {
+  font-size: 0.86rem;
+  letter-spacing: 0.06em;
 }
 
 .game-timer {
@@ -1549,7 +1557,7 @@ h2 {
   font-size: 0.9rem;
   font-weight: 650;
   line-height: 1.75;
-  max-width: 860px;
+  max-width: 1180px;
 }
 
 @keyframes streamFlow {
