@@ -43,15 +43,11 @@
 
         <section class="dock-section edge-editor" aria-labelledby="edge-editor-title">
           <div class="section-title">
-            <span>Selected Edge</span>
+            <span>選択中の反応</span>
             <strong id="edgeStatus">Capacity 100</strong>
           </div>
           <h2 id="edge-editor-title">Edgeを選択</h2>
           <p id="edgeMeta">ネットワーク上の太い線をクリック</p>
-
-          <div class="capacity-meter" aria-hidden="true">
-            <span id="capacityFill"></span>
-          </div>
 
           <label class="capacity-slider" for="edgeCapacityInput">
             <span>Capacity</span>
@@ -97,10 +93,10 @@
         <div class="stage-topline">
           <div>
             <p class="eyebrow">Interactive Biosynthesis Network</p>
-            <h2 id="network-heading">Node = Glycan / Edge = Reaction / Width = Flow</h2>
+            <h2 id="network-heading">Node = state / Edge = reaction / Width = flow</h2>
           </div>
           <div class="flow-legend" aria-label="Flow legend">
-            <span><i class="line active"></i>流れている</span>
+            <span><i class="line active"></i>太いほど多い</span>
             <span><i class="line stopped"></i>停止</span>
             <span><i class="dot selected"></i>選択中</span>
           </div>
@@ -110,7 +106,7 @@
           <div class="state-overlay" id="networkLoading">Loading</div>
           <svg id="networkSvg" class="network-svg" viewBox="0 0 1040 650" role="img" aria-labelledby="networkTitle networkDesc">
             <title id="networkTitle">糖鎖生合成ネットワーク</title>
-            <desc id="networkDesc">Edgeを選択してCapacityを変更すると、FlowとTerminal Glycan Distributionが変化します。</desc>
+            <desc id="networkDesc">Edgeを選択してCapacityを変更すると、Flowと最終糖鎖分布が変化します。</desc>
           </svg>
         </div>
 
@@ -123,13 +119,14 @@
       <aside class="result-dock" aria-label="結果">
         <section class="dock-section target-panel">
           <div class="section-title">
-            <span>Target Glycan</span>
-            <strong>Reduce</strong>
+            <span>目的設定</span>
+            <strong>減らす</strong>
           </div>
-          <div class="target-buttons" role="group" aria-label="減らしたい糖鎖">
-            <button class="target-button active" data-target="stable" type="button" aria-pressed="true">未加工</button>
-            <button class="target-button" data-target="adaptive" type="button" aria-pressed="false">枝分かれ</button>
-            <button class="target-button" data-target="stress" type="button" aria-pressed="false">仕上げ済み</button>
+          <h2 class="target-title">減らしたい結果</h2>
+          <div class="target-buttons" role="group" aria-label="減らしたい結果">
+            <button class="target-button active" data-target="stable" type="button" aria-pressed="true">A</button>
+            <button class="target-button" data-target="adaptive" type="button" aria-pressed="false">B</button>
+            <button class="target-button" data-target="stress" type="button" aria-pressed="false">C</button>
           </div>
           <div class="recommendation" id="recommendationList" aria-live="polite"></div>
         </section>

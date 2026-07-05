@@ -274,23 +274,6 @@ h2 {
   color: var(--warning);
 }
 
-.capacity-meter {
-  height: 8px;
-  margin-bottom: 14px;
-  border-radius: 999px;
-  background: rgba(203, 217, 211, 0.12);
-  overflow: hidden;
-}
-
-.capacity-meter span {
-  display: block;
-  width: 50%;
-  height: 100%;
-  border-radius: inherit;
-  background: var(--primary);
-  transition: width 150ms ease;
-}
-
 .capacity-slider,
 .mini-slider {
   display: grid;
@@ -629,6 +612,12 @@ h2 {
 .target-panel {
   display: grid;
   gap: 12px;
+}
+
+.target-title {
+  color: var(--text);
+  font-size: 1.1rem;
+  font-weight: 760;
 }
 
 .recommendation {

@@ -1,30 +1,30 @@
 const modules = [
   { id: "input", label: "Start", name: "前駆糖鎖", x: 90, y: 325, color: "#79a7ff", shape: "diamond" },
   { id: "core", label: "Trim", name: "切りそろえ後", x: 260, y: 325, color: "#59d7c5", shape: "circle" },
-  { id: "high", label: "Raw", name: "未加工側", x: 445, y: 175, color: "#f3c34d", shape: "circle" },
-  { id: "branch", label: "Branch", name: "枝分かれ側", x: 445, y: 325, color: "#8de6a6", shape: "rect" },
+  { id: "high", label: "A route", name: "A側ルート", x: 445, y: 175, color: "#f3c34d", shape: "circle" },
+  { id: "branch", label: "B route", name: "B側ルート", x: 445, y: 325, color: "#8de6a6", shape: "rect" },
   { id: "stall", label: "Slow", name: "停滞側", x: 445, y: 475, color: "#ff7a71", shape: "circle" },
   { id: "extend", label: "Extend", name: "伸長中", x: 635, y: 245, color: "#ee78bd", shape: "hex" },
-  { id: "finish", label: "Finish", name: "仕上げ中", x: 635, y: 405, color: "#bae75f", shape: "hex" },
-  { id: "stable", label: "未加工", name: "未加工タイプ", x: 865, y: 160, color: "#59d7c5", shape: "rect", terminal: "stable" },
-  { id: "adaptive", label: "枝分かれ", name: "枝分かれタイプ", x: 865, y: 325, color: "#f3c34d", shape: "rect", terminal: "adaptive" },
-  { id: "stressOut", label: "仕上げ", name: "仕上げ済みタイプ", x: 865, y: 490, color: "#ff7a71", shape: "rect", terminal: "stress" },
+  { id: "finish", label: "C step", name: "Cへ向かう反応", x: 635, y: 405, color: "#bae75f", shape: "hex" },
+  { id: "stable", label: "A", name: "Product A", x: 865, y: 160, color: "#59d7c5", shape: "rect", terminal: "stable" },
+  { id: "adaptive", label: "B", name: "Product B", x: 865, y: 325, color: "#f3c34d", shape: "rect", terminal: "adaptive" },
+  { id: "stressOut", label: "C", name: "Product C", x: 865, y: 490, color: "#ff7a71", shape: "rect", terminal: "stress" },
 ];
 
 const links = [
   { id: "input_core", from: "input", to: "core", base: 120, mode: "supply", enzyme: "mannosidase", enzymeLabel: "MAN1/2", label: "切りそろえ", color: "#79a7ff" },
-  { id: "core_high", from: "core", to: "high", base: 46, mode: "escape", enzymeLabel: "MAN1/2", label: "未加工へ", color: "#f3c34d" },
-  { id: "core_branch", from: "core", to: "branch", base: 74, mode: "enzyme", enzyme: "mgat", enzymeLabel: "MGAT", label: "枝分かれ", color: "#8de6a6" },
+  { id: "core_high", from: "core", to: "high", base: 46, mode: "escape", enzymeLabel: "MAN1/2", label: "Aへ", color: "#f3c34d" },
+  { id: "core_branch", from: "core", to: "branch", base: 74, mode: "enzyme", enzyme: "mgat", enzymeLabel: "MGAT", label: "Bへ", color: "#8de6a6" },
   { id: "core_stall", from: "core", to: "stall", base: 34, mode: "stall", enzymeLabel: "MAN1/2", label: "停滞", color: "#ff7a71" },
-  { id: "high_branch", from: "high", to: "branch", base: 44, mode: "enzyme", enzyme: "mgat", enzymeLabel: "MGAT", label: "分岐へ戻す", color: "#8de6a6" },
-  { id: "high_stable", from: "high", to: "stable", base: 42, mode: "escape", enzymeLabel: "MAN1/2", label: "未加工", color: "#59d7c5" },
+  { id: "high_branch", from: "high", to: "branch", base: 44, mode: "enzyme", enzyme: "mgat", enzymeLabel: "MGAT", label: "Bへ戻す", color: "#8de6a6" },
+  { id: "high_stable", from: "high", to: "stable", base: 42, mode: "escape", enzymeLabel: "MAN1/2", label: "A", color: "#59d7c5" },
   { id: "branch_extend", from: "branch", to: "extend", base: 58, mode: "enzyme", enzyme: "galt", enzymeLabel: "GalT", label: "伸ばす", color: "#ee78bd" },
-  { id: "branch_finish", from: "branch", to: "finish", base: 38, mode: "enzyme", enzyme: "terminal", enzymeLabel: "ST/FUT", label: "仕上げへ", color: "#bae75f" },
+  { id: "branch_finish", from: "branch", to: "finish", base: 38, mode: "enzyme", enzyme: "terminal", enzymeLabel: "ST/FUT", label: "Cへ", color: "#bae75f" },
   { id: "stall_finish", from: "stall", to: "finish", base: 40, mode: "transit", enzymeLabel: "ST/FUT", label: "滞在", color: "#bae75f" },
-  { id: "extend_stable", from: "extend", to: "stable", base: 26, mode: "escape", enzymeLabel: "GalT", label: "未仕上げ", color: "#59d7c5" },
-  { id: "extend_adaptive", from: "extend", to: "adaptive", base: 60, mode: "enzyme", enzyme: "galt", enzymeLabel: "GalT", label: "枝分かれ", color: "#f3c34d" },
+  { id: "extend_stable", from: "extend", to: "stable", base: 26, mode: "escape", enzymeLabel: "GalT", label: "A", color: "#59d7c5" },
+  { id: "extend_adaptive", from: "extend", to: "adaptive", base: 60, mode: "enzyme", enzyme: "galt", enzymeLabel: "GalT", label: "B", color: "#f3c34d" },
   { id: "finish_adaptive", from: "finish", to: "adaptive", base: 36, mode: "enzyme", enzyme: "terminal", enzymeLabel: "ST/FUT", label: "途中型", color: "#f3c34d" },
-  { id: "finish_stress", from: "finish", to: "stressOut", base: 58, mode: "enzyme", enzyme: "terminal", enzymeLabel: "ST/FUT", label: "仕上げ済み", color: "#ff7a71" },
+  { id: "finish_stress", from: "finish", to: "stressOut", base: 58, mode: "enzyme", enzyme: "terminal", enzymeLabel: "ST/FUT", label: "C", color: "#ff7a71" },
 ];
 
 const presets = {
@@ -45,7 +45,7 @@ const presets = {
     },
   },
   inhibited: {
-    label: "枝分かれ弱め",
+    label: "B弱め",
     nutrient: 100,
     stress: 70,
     capacities: {
@@ -71,9 +71,9 @@ const presets = {
 };
 
 const phenotypeLabels = {
-  stable: { label: "未加工", sub: "枝分かれ前に残る", color: "#59d7c5" },
-  adaptive: { label: "枝分かれ", sub: "枝が増えた糖鎖", color: "#f3c34d" },
-  stress: { label: "仕上げ済み", sub: "最後まで進んだ糖鎖", color: "#ff7a71" },
+  stable: { label: "A", sub: "Product A", color: "#59d7c5" },
+  adaptive: { label: "B", sub: "Product B", color: "#f3c34d" },
+  stress: { label: "C", sub: "Product C", color: "#ff7a71" },
 };
 
 const enzymeNames = {
@@ -85,16 +85,16 @@ const enzymeNames = {
 
 const targetPlans = {
   stable: [
-    { label: "枝分かれへ流す", changes: { core_branch: 165, high_branch: 155 } },
-    { label: "未加工出口を絞る", changes: { high_stable: 35, extend_stable: 45 } },
+    { label: "B側へ流す", changes: { core_branch: 165, high_branch: 155 } },
+    { label: "A出口を絞る", changes: { high_stable: 35, extend_stable: 45 } },
   ],
   adaptive: [
-    { label: "枝分かれ出口を絞る", changes: { extend_adaptive: 35, finish_adaptive: 45 } },
-    { label: "仕上げ側へ送る", changes: { branch_finish: 155, finish_stress: 155 } },
+    { label: "B出口を絞る", changes: { extend_adaptive: 35, finish_adaptive: 45 } },
+    { label: "C側へ送る", changes: { branch_finish: 155, finish_stress: 155 } },
   ],
   stress: [
-    { label: "仕上げ出口を止める", changes: { finish_stress: 0 } },
-    { label: "仕上げへ入る流れを絞る", changes: { branch_finish: 45, stall_finish: 45 } },
+    { label: "C出口を止める", changes: { finish_stress: 0 } },
+    { label: "Cへ入る流れを絞る", changes: { branch_finish: 45, stall_finish: 45 } },
   ],
 };
 
@@ -125,7 +125,6 @@ const dom = {
   },
   edgeCapacityInput: document.querySelector("#edgeCapacityInput"),
   edgeCapacityOutput: document.querySelector("#edgeCapacityOutput"),
-  capacityFill: document.querySelector("#capacityFill"),
   edgeStatus: document.querySelector("#edgeStatus"),
   edgeTitle: document.querySelector("#edge-editor-title"),
   edgeMeta: document.querySelector("#edgeMeta"),
@@ -151,7 +150,6 @@ const dom = {
 const requiredElements = [
   dom.edgeCapacityInput,
   dom.edgeCapacityOutput,
-  dom.capacityFill,
   dom.edgeStatus,
   dom.edgeTitle,
   dom.edgeMeta,
@@ -357,27 +355,6 @@ function terminalScale(module, result) {
 function drawNetwork(result, baseline) {
   dom.networkSvg.innerHTML = "";
 
-  const defs = document.createElementNS("http://www.w3.org/2000/svg", "defs");
-  const marker = document.createElementNS("http://www.w3.org/2000/svg", "marker");
-  const arrow = document.createElementNS("http://www.w3.org/2000/svg", "path");
-  marker.setAttribute("id", "flowArrow");
-  marker.setAttribute("viewBox", "0 0 8 8");
-  marker.setAttribute("refX", "6.4");
-  marker.setAttribute("refY", "4");
-  marker.setAttribute("markerWidth", "8");
-  marker.setAttribute("markerHeight", "8");
-  marker.setAttribute("markerUnits", "userSpaceOnUse");
-  marker.setAttribute("orient", "auto-start-reverse");
-  arrow.setAttribute("d", "M 1.3 1.1 L 6.7 4 L 1.3 6.9");
-  arrow.setAttribute("fill", "none");
-  arrow.setAttribute("stroke", "#e6f0eb");
-  arrow.setAttribute("stroke-linecap", "round");
-  arrow.setAttribute("stroke-linejoin", "round");
-  arrow.setAttribute("stroke-width", "1.6");
-  marker.append(arrow);
-  defs.append(marker);
-  dom.networkSvg.append(defs);
-
   [130, 230, 330].forEach((radius) => {
     const ring = document.createElementNS("http://www.w3.org/2000/svg", "circle");
     ring.setAttribute("cx", "515");
@@ -426,7 +403,6 @@ function drawNetwork(result, baseline) {
     flow.setAttribute("stroke", link.color);
     flow.setAttribute("stroke-width", width.toFixed(1));
     flow.setAttribute("opacity", opacity.toFixed(2));
-    flow.setAttribute("marker-end", stopped ? "" : "url(#flowArrow)");
     hit.setAttribute("d", path);
     hit.setAttribute("class", "edge-hit");
 
@@ -437,7 +413,7 @@ function drawNetwork(result, baseline) {
     cap.setAttribute("x", midX);
     cap.setAttribute("y", midY + 3);
     cap.setAttribute("class", "edge-capacity");
-    cap.textContent = `${link.enzymeLabel} · ${edgeCapacity(link.id)}`;
+    cap.textContent = amount.toFixed(0);
 
     group.append(title, shadow, base, flow, hit, label, cap);
 
@@ -545,7 +521,6 @@ function updateOutputs() {
   dom.edgeCapacityInput.value = String(edgeCapacity(state.selectedEdge));
   dom.edgeCapacityOutput.value = String(edgeCapacity(state.selectedEdge));
   dom.edgeCapacityOutput.textContent = String(edgeCapacity(state.selectedEdge));
-  dom.capacityFill.style.width = `${Math.min(100, edgeCapacity(state.selectedEdge) / 2)}%`;
 }
 
 function updatePresetButtons() {
