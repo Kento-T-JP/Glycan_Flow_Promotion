@@ -126,6 +126,22 @@ h1 {
   line-height: 1.15;
 }
 
+.headline-message {
+  margin: 4px 0 0;
+  color: var(--soft);
+  font-size: 0.98rem;
+  font-weight: 760;
+  line-height: 1.35;
+}
+
+.headline-support {
+  margin: 0;
+  color: var(--muted);
+  font-size: 0.88rem;
+  font-weight: 650;
+  line-height: 1.45;
+}
+
 h2 {
   margin-bottom: 0;
   font-size: 1rem;

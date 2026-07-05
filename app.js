@@ -162,10 +162,9 @@ function factorFor(link, model) {
 function calculateModel(inputModel = getCurrentModel()) {
   const model = { pulse: 1, ...inputModel };
   const outgoing = new Map();
-  const incoming = new Map([["input", model.nutrient]]);
+  const incoming = new Map();
   const flows = new Map();
   const capacities = new Map();
-  const averageEdgeLevel = links.reduce((sum, link) => sum + edgeCapacity(link.id, model), 0) / links.length / 100;
 
   links.forEach((link, index) => {
     const capacity = link.base * factorFor(link, model);
@@ -174,19 +173,30 @@ function calculateModel(inputModel = getCurrentModel()) {
     outgoing.get(link.from).push({ ...link, index, capacity });
   });
 
-  nodeOrder.forEach((id) => {
-    const rawAvailable = incoming.get(id) ?? 0;
-    const isLateRoute = id === "extend" || id === "finish";
-    const isStalledRoute = id === "stall";
-    const capacityLoss = isStalledRoute ? 0.04 : 0.18 * (1 - Math.min(1, averageEdgeLevel));
-    const transitLoss = isLateRoute ? 0.03 : 0.08 * Math.max(0, model.stress / 100 - 1);
-    const available = rawAvailable * Math.max(0.22, 1 - capacityLoss - transitLoss);
+  const downstreamCapacity = new Map(terminalOrder.map((key) => [modules.find((module) => module.terminal === key).id, Infinity]));
+  [...nodeOrder].reverse().forEach((id) => {
     const edges = outgoing.get(id) ?? [];
-    const totalCapacity = edges.reduce((sum, edge) => sum + edge.capacity, 0);
+    const nodeCapacity = edges.reduce((sum, edge) => {
+      const toCapacity = downstreamCapacity.get(edge.to) ?? Infinity;
+      return sum + Math.min(edge.capacity, toCapacity);
+    }, 0);
+    downstreamCapacity.set(id, nodeCapacity);
+  });
+
+  incoming.set("input", Math.min(model.nutrient, downstreamCapacity.get("input") ?? 0));
+
+  nodeOrder.forEach((id) => {
+    const available = incoming.get(id) ?? 0;
+    const edges = outgoing.get(id) ?? [];
+    const effectiveEdges = edges.map((edge) => ({
+      ...edge,
+      effectiveCapacity: Math.min(edge.capacity, downstreamCapacity.get(edge.to) ?? Infinity),
+    }));
+    const totalCapacity = effectiveEdges.reduce((sum, edge) => sum + edge.effectiveCapacity, 0);
     if (!available || totalCapacity <= 0) return;
 
-    edges.forEach((edge) => {
-      const flow = available * (edge.capacity / totalCapacity);
+    effectiveEdges.forEach((edge) => {
+      const flow = available * (edge.effectiveCapacity / totalCapacity);
       flows.set(edge.id, flow);
       incoming.set(edge.to, (incoming.get(edge.to) ?? 0) + flow);
     });
@@ -305,6 +315,7 @@ function drawNetwork(result, baseline) {
     group.setAttribute("role", "button");
     group.setAttribute("aria-label", `${link.label} ${link.action}。流量 ${amount.toFixed(0)}。クリックで選択。`);
     group.dataset.edge = link.id;
+    group.dataset.flow = amount.toFixed(6);
     title.textContent = `${link.label}: ${link.action} / 流量 ${amount.toFixed(1)}`;
 
     shadow.setAttribute("d", path);
