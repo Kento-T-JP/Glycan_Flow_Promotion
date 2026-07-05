@@ -1001,6 +1001,16 @@ h2 {
     opacity 180ms ease;
 }
 
+.edge-stream {
+  stroke-linecap: round;
+  fill: none;
+  opacity: 0.82;
+  stroke-dasharray: 2 18;
+  animation: streamFlow var(--stream-speed, 1.4s) linear infinite;
+  filter: drop-shadow(0 0 8px currentColor);
+  pointer-events: none;
+}
+
 .edge-hit {
   stroke: transparent;
   stroke-width: 30;
@@ -1051,7 +1061,9 @@ h2 {
 }
 
 .particle {
-  filter: drop-shadow(0 0 7px currentColor);
+  stroke: rgba(255, 255, 255, 0.68);
+  stroke-width: 1.4;
+  filter: drop-shadow(0 0 9px currentColor);
   pointer-events: none;
 }
 
@@ -1258,7 +1270,7 @@ h2 {
 .feedback-toast {
   position: fixed;
   left: 50%;
-  bottom: 18px;
+  top: 18px;
   z-index: 50;
   transform: translateX(-50%);
   max-width: min(520px, calc(100vw - 28px));
@@ -1268,6 +1280,12 @@ h2 {
   color: var(--text);
   background: #17231f;
   box-shadow: var(--shadow);
+}
+
+@keyframes streamFlow {
+  to {
+    stroke-dashoffset: -40;
+  }
 }
 
 .noscript-message {
@@ -1321,6 +1339,12 @@ h2 {
 
   .distribution-track {
     grid-column: 2 / 4;
+  }
+}
+
+@media (min-width: 1221px) {
+  .result-dock {
+    padding-top: clamp(340px, 52vh, 500px);
   }
 }
 

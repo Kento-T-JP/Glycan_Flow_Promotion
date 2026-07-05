@@ -288,11 +288,16 @@ function gameHint(result) {
   return `${phenotypeLabels[key].label}を${direction}`;
 }
 
-function nodeBoundaryOffset(module) {
-  if (module.shape === "diamond") return 50;
-  if (module.shape === "rect") return 54;
-  if (module.shape === "hex") return 52;
-  return 48;
+function nodeBoundaryOffset(module, ux = 1, uy = 0) {
+  if (module.shape === "rect") {
+    const halfWidth = 39;
+    const halfHeight = 28;
+    const scale = Math.max(Math.abs(ux) / halfWidth, Math.abs(uy) / halfHeight) || 1;
+    return 1 / scale + 4;
+  }
+  if (module.shape === "diamond") return 42;
+  if (module.shape === "hex") return 42;
+  return 42;
 }
 
 function pathFor(link) {
@@ -303,13 +308,13 @@ function pathFor(link) {
   const length = Math.hypot(rawDx, rawDy) || 1;
   const ux = rawDx / length;
   const uy = rawDy / length;
-  const startX = from.x + ux * nodeBoundaryOffset(from);
-  const startY = from.y + uy * nodeBoundaryOffset(from);
-  const endX = to.x - ux * nodeBoundaryOffset(to);
-  const endY = to.y - uy * nodeBoundaryOffset(to);
+  const startX = from.x + ux * nodeBoundaryOffset(from, ux, uy);
+  const startY = from.y + uy * nodeBoundaryOffset(from, ux, uy);
+  const endX = to.x - ux * nodeBoundaryOffset(to, ux, uy);
+  const endY = to.y - uy * nodeBoundaryOffset(to, ux, uy);
   const dx = Math.abs(endX - startX);
   const dy = endY - startY;
-  const curve = Math.max(70, dx * 0.44);
+  const curve = Math.min(Math.max(28, dx * 0.44), Math.max(28, dx * 0.48));
   return `M ${startX} ${startY} C ${startX + curve} ${startY + dy * 0.08}, ${endX - curve} ${endY - dy * 0.08}, ${endX} ${endY}`;
 }
 
@@ -382,6 +387,7 @@ function drawNetwork(result, baseline) {
     const shadow = document.createElementNS("http://www.w3.org/2000/svg", "path");
     const base = document.createElementNS("http://www.w3.org/2000/svg", "path");
     const flow = document.createElementNS("http://www.w3.org/2000/svg", "path");
+    const stream = document.createElementNS("http://www.w3.org/2000/svg", "path");
     const hit = document.createElementNS("http://www.w3.org/2000/svg", "path");
     const label = document.createElementNS("http://www.w3.org/2000/svg", "text");
     const cap = document.createElementNS("http://www.w3.org/2000/svg", "text");
@@ -403,6 +409,12 @@ function drawNetwork(result, baseline) {
     flow.setAttribute("stroke", link.color);
     flow.setAttribute("stroke-width", width.toFixed(1));
     flow.setAttribute("opacity", opacity.toFixed(2));
+    stream.setAttribute("d", path);
+    stream.setAttribute("class", "edge-stream");
+    stream.setAttribute("stroke", link.color);
+    stream.setAttribute("stroke-width", Math.max(3.2, Math.min(8, width * 0.42)).toFixed(1));
+    stream.style.color = link.color;
+    stream.style.setProperty("--stream-speed", `${Math.max(0.85, 2.2 - amount / 72).toFixed(2)}s`);
     hit.setAttribute("d", path);
     hit.setAttribute("class", "edge-hit");
 
@@ -416,17 +428,19 @@ function drawNetwork(result, baseline) {
     cap.textContent = amount.toFixed(0);
 
     group.append(title, shadow, base, flow);
+    if (!stopped) group.append(stream);
 
-    const particleCount = reduceMotion || stopped ? 0 : amount > 70 ? 4 : amount > 34 ? 3 : amount > 10 ? 2 : 1;
+    const shortFlowBoost = link.id === "input_core" || link.id === "core_branch";
+    const particleCount = reduceMotion || stopped ? 0 : shortFlowBoost ? 6 : amount > 70 ? 4 : amount > 34 ? 3 : amount > 10 ? 2 : 1;
     for (let i = 0; i < particleCount; i += 1) {
       const particle = document.createElementNS("http://www.w3.org/2000/svg", "circle");
       const animate = document.createElementNS("http://www.w3.org/2000/svg", "animateMotion");
-      particle.setAttribute("r", String(3.2 + Math.min(4, amount / 34)));
+      particle.setAttribute("r", String((shortFlowBoost ? 4.4 : 3.2) + Math.min(4, amount / 34)));
       particle.setAttribute("fill", link.color);
       particle.setAttribute("class", "particle");
       particle.style.color = link.color;
-      animate.setAttribute("dur", `${Math.max(1.2, 4.4 - amount / 36).toFixed(2)}s`);
-      animate.setAttribute("begin", `${i * 0.34}s`);
+      animate.setAttribute("dur", `${Math.max(0.9, 4.4 - amount / 36).toFixed(2)}s`);
+      animate.setAttribute("begin", `${i * (shortFlowBoost ? 0.22 : 0.34)}s`);
       animate.setAttribute("repeatCount", "indefinite");
       animate.setAttribute("path", path);
       particle.append(animate);
