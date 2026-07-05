@@ -43,6 +43,25 @@ const terminalOrder = ["stable", "adaptive", "stress"];
 const gameDurationMs = 30000;
 const countdownStepMs = 1400;
 const defaultGameTarget = { stable: 0.5, adaptive: 0.3, stress: 0.2 };
+const defaultEdgeCapacities = Object.freeze(Object.fromEntries(links.map((link) => [link.id, 100])));
+const moduleById = new Map(modules.map((module) => [module.id, module]));
+const linkByIdMap = new Map(links.map((link) => [link.id, link]));
+const outgoingLinks = new Map();
+const linksByEnzyme = new Map();
+const terminalNodeIdByKey = new Map();
+
+links.forEach((link) => {
+  if (!outgoingLinks.has(link.from)) outgoingLinks.set(link.from, []);
+  outgoingLinks.get(link.from).push(link);
+  if (link.enzyme) {
+    if (!linksByEnzyme.has(link.enzyme)) linksByEnzyme.set(link.enzyme, []);
+    linksByEnzyme.get(link.enzyme).push(link);
+  }
+});
+
+modules.forEach((module) => {
+  if (module.terminal) terminalNodeIdByKey.set(module.terminal, module.id);
+});
 
 const state = {
   selectedEdge: "core_branch",
@@ -58,6 +77,7 @@ const state = {
     score: 0,
     countdown: 3,
     verdict: "Ready",
+    lastRemaining: null,
   },
 };
 
@@ -84,6 +104,7 @@ const dom = {
   gameTimer: document.querySelector("#gameTimer"),
   gameReveal: document.querySelector("#gameReveal"),
   gameCountdown: document.querySelector("#gameCountdown"),
+  gameCountdownNumber: document.querySelector("#gameCountdown strong"),
   gameTargets: document.querySelector("#gameTargets"),
   gameScoreFill: document.querySelector("#gameScoreFill"),
   gameScore: document.querySelector("#gameScore"),
@@ -115,6 +136,7 @@ const requiredElements = [
   dom.gameTimer,
   dom.gameReveal,
   dom.gameCountdown,
+  dom.gameCountdownNumber,
   dom.gameTargets,
   dom.gameScoreFill,
   dom.gameScore,
@@ -130,9 +152,30 @@ let sliderPrimed = false;
 let gameTimerId = 0;
 let gameCountdownTimerId = 0;
 let networkInitialized = false;
+let baselineResultCache = null;
+let phenotypeChartEmpty = false;
+const edgeElements = new Map();
+const nodeElements = new Map();
+const phenotypeRows = new Map();
+const gameTargetRows = new Map();
 
 function defaultCapacities() {
-  return Object.fromEntries(links.map((link) => [link.id, 100]));
+  return { ...defaultEdgeCapacities };
+}
+
+function setText(element, value) {
+  const next = String(value);
+  if (element.textContent !== next) element.textContent = next;
+}
+
+function setAttributeIfChanged(element, name, value) {
+  const next = String(value);
+  if (element.getAttribute(name) !== next) element.setAttribute(name, next);
+}
+
+function setStyleProperty(element, name, value) {
+  const next = String(value);
+  if (element.style.getPropertyValue(name) !== next) element.style.setProperty(name, next);
 }
 
 function assertReady() {
@@ -142,18 +185,18 @@ function assertReady() {
 }
 
 function linkById(id) {
-  return links.find((link) => link.id === id);
+  return linkByIdMap.get(id);
 }
 
 function nodeById(id) {
-  return modules.find((module) => module.id === id);
+  return moduleById.get(id);
 }
 
 function getCurrentModel() {
   return {
     nutrient: modelDefaults.nutrient,
     stress: modelDefaults.stress,
-    edgeCapacities: { ...state.edgeCapacities },
+    edgeCapacities: state.edgeCapacities,
     pulse: 1,
   };
 }
@@ -162,17 +205,18 @@ function getBaselineModel() {
   return {
     nutrient: modelDefaults.nutrient,
     stress: modelDefaults.stress,
-    edgeCapacities: defaultCapacities(),
+    edgeCapacities: defaultEdgeCapacities,
     pulse: 1,
   };
 }
 
-function edgeCapacity(id, model = getCurrentModel()) {
-  return Number(model.edgeCapacities[id] ?? 100);
+function edgeCapacity(id, model) {
+  const capacities = model?.edgeCapacities ?? state.edgeCapacities;
+  return Number(capacities[id] ?? 100);
 }
 
 function averageCapacity(enzyme, model) {
-  const enzymeLinks = links.filter((link) => link.enzyme === enzyme);
+  const enzymeLinks = linksByEnzyme.get(enzyme) ?? [];
   if (!enzymeLinks.length) return 1;
   return enzymeLinks.reduce((sum, link) => sum + edgeCapacity(link.id, model), 0) / enzymeLinks.length / 100;
 }
@@ -197,25 +241,22 @@ function factorFor(link, model) {
 }
 
 function calculateModel(inputModel = getCurrentModel()) {
-  const model = { pulse: 1, ...inputModel };
-  const outgoing = new Map();
+  const model = inputModel;
   const incoming = new Map();
   const flows = new Map();
   const capacities = new Map();
 
-  links.forEach((link, index) => {
+  links.forEach((link) => {
     const capacity = link.base * factorFor(link, model);
     capacities.set(link.id, capacity);
-    if (!outgoing.has(link.from)) outgoing.set(link.from, []);
-    outgoing.get(link.from).push({ ...link, index, capacity });
   });
 
-  const downstreamCapacity = new Map(terminalOrder.map((key) => [modules.find((module) => module.terminal === key).id, Infinity]));
+  const downstreamCapacity = new Map(terminalOrder.map((key) => [terminalNodeIdByKey.get(key), Infinity]));
   [...nodeOrder].reverse().forEach((id) => {
-    const edges = outgoing.get(id) ?? [];
+    const edges = outgoingLinks.get(id) ?? [];
     const nodeCapacity = edges.reduce((sum, edge) => {
       const toCapacity = downstreamCapacity.get(edge.to) ?? Infinity;
-      return toCapacity > 0 ? sum + edge.capacity : sum;
+      return toCapacity > 0 ? sum + (capacities.get(edge.id) ?? 0) : sum;
     }, 0);
     downstreamCapacity.set(id, nodeCapacity);
   });
@@ -225,16 +266,16 @@ function calculateModel(inputModel = getCurrentModel()) {
 
   nodeOrder.forEach((id) => {
     const available = incoming.get(id) ?? 0;
-    const edges = outgoing.get(id) ?? [];
+    const edges = outgoingLinks.get(id) ?? [];
     const effectiveEdges = edges.map((edge) => ({
-      ...edge,
-      effectiveCapacity: (downstreamCapacity.get(edge.to) ?? Infinity) > 0 ? edge.capacity : 0,
+      edge,
+      effectiveCapacity: (downstreamCapacity.get(edge.to) ?? Infinity) > 0 ? capacities.get(edge.id) ?? 0 : 0,
     }));
     const totalCapacity = effectiveEdges.reduce((sum, edge) => sum + edge.effectiveCapacity, 0);
     if (!available || totalCapacity <= 0) return;
 
-    effectiveEdges.forEach((edge) => {
-      const flow = available * (edge.effectiveCapacity / totalCapacity);
+    effectiveEdges.forEach(({ edge, effectiveCapacity }) => {
+      const flow = available * (effectiveCapacity / totalCapacity);
       flows.set(edge.id, flow);
       incoming.set(edge.to, (incoming.get(edge.to) ?? 0) + flow);
     });
@@ -323,6 +364,17 @@ function pathFor(link) {
   return `M ${startX} ${startY} C ${startX + curve} ${startY + dy * 0.08}, ${endX - curve} ${endY - dy * 0.08}, ${endX} ${endY}`;
 }
 
+function terminalPath(module, scale = 1) {
+  const width = 104 * scale;
+  const height = 66 * scale;
+  const left = module.x - width / 2;
+  const top = module.y - height / 2;
+  const right = module.x + width / 2;
+  const bottom = module.y + height / 2;
+  const radius = 18 * scale;
+  return `M ${left + radius} ${top} H ${right - radius} Q ${right} ${top} ${right} ${top + radius} V ${bottom - radius} Q ${right} ${bottom} ${right - radius} ${bottom} H ${left + radius} Q ${left} ${bottom} ${left} ${bottom - radius} V ${top + radius} Q ${left} ${top} ${left + radius} ${top} Z`;
+}
+
 function createShape(module, scale = 1) {
   if (module.shape === "rect") {
     const width = 78 * scale;
@@ -349,15 +401,8 @@ function createShape(module, scale = 1) {
     return hex;
   }
   if (module.shape === "terminal") {
-    const width = 104 * scale;
-    const height = 66 * scale;
-    const left = module.x - width / 2;
-    const top = module.y - height / 2;
-    const right = module.x + width / 2;
-    const bottom = module.y + height / 2;
-    const radius = 18 * scale;
     const terminal = document.createElementNS("http://www.w3.org/2000/svg", "path");
-    terminal.setAttribute("d", `M ${left + radius} ${top} H ${right - radius} Q ${right} ${top} ${right} ${top + radius} V ${bottom - radius} Q ${right} ${bottom} ${right - radius} ${bottom} H ${left + radius} Q ${left} ${bottom} ${left} ${bottom - radius} V ${top + radius} Q ${left} ${top} ${left + radius} ${top} Z`);
+    terminal.setAttribute("d", terminalPath(module, scale));
     return terminal;
   }
   const circle = document.createElementNS("http://www.w3.org/2000/svg", "circle");
@@ -380,18 +425,23 @@ function svgElement(tag, attributes = {}) {
 }
 
 function createParticle(link, path, amount, index, shortFlowBoost) {
+  const radius = String((shortFlowBoost ? 4.4 : 3.2) + Math.min(4, amount / 34));
+  const duration = `${Math.max(0.9, 4.4 - amount / 36).toFixed(2)}s`;
   const particle = svgElement("circle", {
-    r: String((shortFlowBoost ? 4.4 : 3.2) + Math.min(4, amount / 34)),
+    r: radius,
     fill: link.color,
     class: "particle",
   });
   const animate = svgElement("animateMotion", {
-    dur: `${Math.max(0.9, 4.4 - amount / 36).toFixed(2)}s`,
+    dur: duration,
     begin: `${index * (shortFlowBoost ? 0.22 : 0.34)}s`,
     repeatCount: "indefinite",
     path,
   });
   particle.style.color = link.color;
+  particle.dataset.radius = radius;
+  particle.dataset.duration = duration;
+  particle.motionElement = animate;
   particle.append(animate);
   return particle;
 }
@@ -432,6 +482,7 @@ function ensureNetworkElements(result) {
     const label = svgElement("text", { x: midX, y: midY - 16, class: "edge-label" });
     const cap = svgElement("text", { x: midX, y: midY + 3, class: "edge-capacity" });
     const particleGroup = svgElement("g", { class: "particle-layer" });
+    const shortFlowBoost = link.id === "input_core" || link.id === "core_branch";
 
     stream.style.color = link.color;
     label.textContent = link.label;
@@ -445,6 +496,7 @@ function ensureNetworkElements(result) {
       }
     });
     dom.networkSvg.append(group);
+    edgeElements.set(link.id, { group, title, flow, stream, cap, particleGroup, path, shortFlowBoost });
   });
 
   modules.forEach((module) => {
@@ -462,17 +514,26 @@ function ensureNetworkElements(result) {
     text.textContent = module.label;
     group.append(title, shape, text);
     dom.networkSvg.append(group);
+    nodeElements.set(module.id, { group, title, shape });
   });
 
   networkInitialized = true;
 }
 
 function syncParticles(layer, link, path, amount, particleCount, shortFlowBoost) {
-  const current = layer.querySelectorAll(".particle").length;
+  const current = Number(layer.dataset.count ?? 0);
   if (current === particleCount) {
-    layer.querySelectorAll(".particle").forEach((particle) => {
-      particle.setAttribute("r", String((shortFlowBoost ? 4.4 : 3.2) + Math.min(4, amount / 34)));
-      particle.querySelector("animateMotion")?.setAttribute("dur", `${Math.max(0.9, 4.4 - amount / 36).toFixed(2)}s`);
+    const radius = String((shortFlowBoost ? 4.4 : 3.2) + Math.min(4, amount / 34));
+    const duration = `${Math.max(0.9, 4.4 - amount / 36).toFixed(2)}s`;
+    Array.from(layer.children).forEach((particle) => {
+      if (particle.dataset.radius !== radius) {
+        particle.dataset.radius = radius;
+        particle.setAttribute("r", radius);
+      }
+      if (particle.dataset.duration !== duration) {
+        particle.dataset.duration = duration;
+        particle.motionElement?.setAttribute("dur", duration);
+      }
     });
     return;
   }
@@ -480,6 +541,7 @@ function syncParticles(layer, link, path, amount, particleCount, shortFlowBoost)
   for (let i = 0; i < particleCount; i += 1) {
     layer.append(createParticle(link, path, amount, i, shortFlowBoost));
   }
+  layer.dataset.count = String(particleCount);
 }
 
 function drawNetwork(result, baseline) {
@@ -491,38 +553,35 @@ function drawNetwork(result, baseline) {
     const delta = amount - baselineAmount;
     const selected = link.id === state.selectedEdge;
     const stopped = edgeCapacity(link.id) === 0 || amount < 0.2;
-    const path = pathFor(link);
     const width = stopped ? 1.5 : 2 + Math.min(16, amount / 6);
     const opacity = stopped ? 0.22 : 0.28 + Math.min(0.72, amount / 82);
-    const group = dom.networkSvg.querySelector(`[data-edge="${link.id}"]`);
-    const stream = group.querySelector(".edge-stream");
-    const particleLayer = group.querySelector(".particle-layer");
-    const shortFlowBoost = link.id === "input_core" || link.id === "core_branch";
+    const elements = edgeElements.get(link.id);
+    const { group, title, flow, stream, cap, particleGroup, path, shortFlowBoost } = elements;
     const particleCount = reduceMotion || stopped ? 0 : shortFlowBoost ? 6 : amount > 70 ? 4 : amount > 34 ? 3 : amount > 10 ? 2 : 1;
 
-    group.setAttribute("class", ["bio-edge", selected ? "selected" : "", stopped ? "stopped" : "", delta > 4 ? "increased" : "", delta < -4 ? "decreased" : ""].join(" "));
-    group.setAttribute("aria-label", `${link.label} ${link.action}。流量 ${amount.toFixed(0)}。クリックで選択。`);
+    setAttributeIfChanged(group, "class", ["bio-edge", selected ? "selected" : "", stopped ? "stopped" : "", delta > 4 ? "increased" : "", delta < -4 ? "decreased" : ""].join(" "));
+    setAttributeIfChanged(group, "aria-label", `${link.label} ${link.action}。流量 ${amount.toFixed(0)}。クリックで選択。`);
     group.dataset.flow = amount.toFixed(6);
-    group.querySelector("title").textContent = `${link.label}: ${link.action} / 流量 ${amount.toFixed(1)}`;
-    group.querySelector(".edge-flow").setAttribute("stroke-width", width.toFixed(1));
-    group.querySelector(".edge-flow").setAttribute("opacity", opacity.toFixed(2));
-    stream.setAttribute("stroke-width", Math.max(3.2, Math.min(8, width * 0.42)).toFixed(1));
-    stream.style.display = stopped ? "none" : "";
-    stream.style.setProperty("--stream-speed", `${Math.max(0.85, 2.2 - amount / 72).toFixed(2)}s`);
-    group.querySelector(".edge-capacity").textContent = amount.toFixed(0);
-    syncParticles(particleLayer, link, path, amount, particleCount, shortFlowBoost);
+    setText(title, `${link.label}: ${link.action} / 流量 ${amount.toFixed(1)}`);
+    setAttributeIfChanged(flow, "stroke-width", width.toFixed(1));
+    setAttributeIfChanged(flow, "opacity", opacity.toFixed(2));
+    setAttributeIfChanged(stream, "stroke-width", Math.max(3.2, Math.min(8, width * 0.42)).toFixed(1));
+    const nextDisplay = stopped ? "none" : "";
+    if (stream.style.display !== nextDisplay) stream.style.display = nextDisplay;
+    setStyleProperty(stream, "--stream-speed", `${Math.max(0.85, 2.2 - amount / 72).toFixed(2)}s`);
+    setText(cap, amount.toFixed(0));
+    syncParticles(particleGroup, link, path, amount, particleCount, shortFlowBoost);
   });
 
   modules.forEach((module) => {
-    const group = dom.networkSvg.querySelector(`[data-node="${module.id}"]`);
+    const elements = nodeElements.get(module.id);
     const amount = module.terminal ? result.phenotypes[module.terminal] ?? 0 : 0;
-    const previousShape = group.querySelector("[data-role='shape']");
-    const nextShape = createShape(module, terminalScale(module, result));
-    nextShape.setAttribute("fill", module.color);
-    group.style.setProperty("--node-color", module.color);
-    nextShape.dataset.role = "shape";
-    previousShape.replaceWith(nextShape);
-    group.querySelector("title").textContent = module.terminal ? `${module.name}: ${amount.toFixed(1)}` : module.name;
+    if (module.terminal) {
+      setAttributeIfChanged(elements.shape, "d", terminalPath(module, terminalScale(module, result)));
+      setAttributeIfChanged(elements.shape, "fill", module.color);
+      setStyleProperty(elements.group, "--node-color", module.color);
+    }
+    setText(elements.title, module.terminal ? `${module.name}: ${amount.toFixed(1)}` : module.name);
   });
 }
 
@@ -542,8 +601,14 @@ function selectEdge(id, feedback = "") {
 
 function setEdgeCapacity(id, nextValue, options = {}) {
   if (!linkById(id)) return;
+  const nextCapacity = Math.max(0, Math.min(200, Math.round(nextValue)));
+  const previousCapacity = edgeCapacity(id);
+  if (previousCapacity === nextCapacity) {
+    if (options.feedback) queueUpdate(options.feedback);
+    return;
+  }
   if (!options.skipHistory) pushHistory();
-  state.edgeCapacities[id] = Math.max(0, Math.min(200, Math.round(nextValue)));
+  state.edgeCapacities[id] = nextCapacity;
   queueUpdate(options.feedback || "");
 }
 
@@ -571,9 +636,10 @@ function undoIntervention() {
 }
 
 function updateOutputs() {
-  dom.edgeCapacityInput.value = String(edgeCapacity(state.selectedEdge));
-  dom.edgeCapacityOutput.value = String(edgeCapacity(state.selectedEdge));
-  dom.edgeCapacityOutput.textContent = String(edgeCapacity(state.selectedEdge));
+  const capacity = String(edgeCapacity(state.selectedEdge));
+  if (dom.edgeCapacityInput.value !== capacity) dom.edgeCapacityInput.value = capacity;
+  dom.edgeCapacityOutput.value = capacity;
+  setText(dom.edgeCapacityOutput, capacity);
 }
 
 function updateEdgeEditor(result, baseline) {
@@ -582,25 +648,28 @@ function updateEdgeEditor(result, baseline) {
   const baselineFlow = baseline.flows.get(link.id) ?? 0;
   const delta = flow - baselineFlow;
 
-  dom.edgeTitle.textContent = `${link.label} ${link.action}`;
-  dom.edgeMeta.textContent = `${nodeById(link.from).name} → ${nodeById(link.to).name}`;
-  dom.selectedEdgeFlow.textContent = flow.toFixed(0);
-  dom.selectedEdgeDelta.textContent = `${delta >= 0 ? "+" : ""}${delta.toFixed(0)}`;
+  setText(dom.edgeTitle, `${link.label} ${link.action}`);
+  setText(dom.edgeMeta, `${nodeById(link.from).name} → ${nodeById(link.to).name}`);
+  setText(dom.selectedEdgeFlow, flow.toFixed(0));
+  setText(dom.selectedEdgeDelta, `${delta >= 0 ? "+" : ""}${delta.toFixed(0)}`);
   dom.selectedEdgeDelta.className = delta > 3 ? "positive" : delta < -3 ? "negative" : "";
 }
 
 function updateChart(result, baseline) {
   if (result.total < 1) {
-    if (!dom.phenotypeChart.querySelector(".empty-state")) {
+    if (!phenotypeChartEmpty) {
       dom.phenotypeChart.replaceChildren();
+      phenotypeRows.clear();
       const empty = document.createElement("div");
       empty.className = "empty-state";
       empty.textContent = "流量 = 0";
       dom.phenotypeChart.append(empty);
+      phenotypeChartEmpty = true;
     }
     return;
   }
 
+  phenotypeChartEmpty = false;
   const target = activeGameTarget();
   const hasTarget = state.game.phase !== "idle";
   dom.phenotypeChart.classList.toggle("targeting", hasTarget);
@@ -612,33 +681,30 @@ function updateChart(result, baseline) {
     const targetPercent = Math.round(target[key] * 100);
     const delta = currentPercent - baselinePercent;
     const targetGap = currentPercent - targetPercent;
-    const row = dom.phenotypeChart.querySelector(`[data-phenotype-key="${key}"]`);
+    const elements = phenotypeRows.get(key);
+    const { row, bubble, sub, value, deltaEl, baselineFill, targetGhost, currentFill, targetFill, gap } = elements;
     row.classList.toggle("has-target", hasTarget);
-    row.querySelector(".result-bubble").style.setProperty("--bubble-scale", String(0.68 + currentPercent / 72));
-    row.querySelector(".type-name small").textContent = hasTarget ? "現在" : meta.sub;
-    row.querySelector(".type-value").textContent = `${currentPercent}%`;
-
-    const deltaEl = row.querySelector(".delta");
+    setStyleProperty(bubble, "--bubble-scale", String(0.68 + currentPercent / 72));
+    setText(sub, hasTarget ? "現在" : meta.sub);
+    setText(value, `${currentPercent}%`);
     deltaEl.className = `delta ${hasTarget ? "target-delta" : delta > 0 ? "positive" : delta < 0 ? "negative" : ""}`;
-    deltaEl.textContent = hasTarget ? `目標 ${targetPercent}%` : `${delta >= 0 ? "+" : ""}${delta}`;
-
-    row.querySelector(".baseline-fill").style.width = `${baselinePercent}%`;
-    row.querySelector(".target-ghost").style.width = `${targetPercent}%`;
-    row.querySelector(".current-fill").style.width = `${currentPercent}%`;
-    row.querySelector(".target-fill").style.setProperty("--target-left", `${targetPercent}%`);
-
-    const gap = row.querySelector(".fit-gap");
+    setText(deltaEl, hasTarget ? `目標 ${targetPercent}%` : `${delta >= 0 ? "+" : ""}${delta}`);
+    if (baselineFill.style.width !== `${baselinePercent}%`) baselineFill.style.width = `${baselinePercent}%`;
+    if (targetGhost.style.width !== `${targetPercent}%`) targetGhost.style.width = `${targetPercent}%`;
+    if (currentFill.style.width !== `${currentPercent}%`) currentFill.style.width = `${currentPercent}%`;
+    setStyleProperty(targetFill, "--target-left", `${targetPercent}%`);
     gap.className = `fit-gap ${targetGap > 0 ? "over" : "under"}`;
-    gap.style.setProperty("--gap-left", `${Math.min(currentPercent, targetPercent)}%`);
-    gap.style.setProperty("--gap-width", `${Math.abs(targetGap)}%`);
+    setStyleProperty(gap, "--gap-left", `${Math.min(currentPercent, targetPercent)}%`);
+    setStyleProperty(gap, "--gap-width", `${Math.abs(targetGap)}%`);
   });
 }
 
 function syncPhenotypeRows() {
-  const existingRows = dom.phenotypeChart.querySelectorAll(".phenotype-row");
-  if (existingRows.length === terminalOrder.length) return;
+  if (phenotypeRows.size === terminalOrder.length && !phenotypeChartEmpty) return;
 
   dom.phenotypeChart.replaceChildren();
+  phenotypeRows.clear();
+  phenotypeChartEmpty = false;
   terminalOrder.forEach((key) => {
     const meta = phenotypeLabels[key];
     const row = document.createElement("div");
@@ -659,6 +725,18 @@ function syncPhenotypeRows() {
       </span>
     `;
     dom.phenotypeChart.append(row);
+    phenotypeRows.set(key, {
+      row,
+      bubble: row.querySelector(".result-bubble"),
+      sub: row.querySelector(".type-name small"),
+      value: row.querySelector(".type-value"),
+      deltaEl: row.querySelector(".delta"),
+      baselineFill: row.querySelector(".baseline-fill"),
+      targetGhost: row.querySelector(".target-ghost"),
+      currentFill: row.querySelector(".current-fill"),
+      targetFill: row.querySelector(".target-fill"),
+      gap: row.querySelector(".fit-gap"),
+    });
   });
 }
 
@@ -672,26 +750,26 @@ function updateGame(result) {
   state.game.score = score;
 
   const remaining = isPlaying ? Math.max(0, Math.ceil((state.game.endsAt - Date.now()) / 1000)) : null;
+  state.game.lastRemaining = isPlaying ? remaining : null;
   dom.gamePanel.classList.toggle("playing", isPlaying);
   dom.gamePanel.classList.toggle("revealing", isCounting);
   dom.gamePanel.classList.toggle("counting", isCounting);
   dom.gamePanel.classList.toggle("finished", isFinished);
-  dom.gameTimer.textContent = isPlaying ? `${remaining}s` : "--";
-  dom.gameScoreFill.style.setProperty("--score-width", `${score}%`);
-  dom.gameScore.textContent = isPlaying ? `${score}` : state.game.verdict;
-  dom.gamePrompt.textContent = isPlaying ? gameHint(result) : isCounting ? "A/B/Cを目標に合わせる" : isFinished ? "もう一度遊ぶ？" : "Startで目標を表示";
+  setText(dom.gameTimer, isPlaying ? `${remaining}s` : "--");
+  setStyleProperty(dom.gameScoreFill, "--score-width", `${score}%`);
+  setText(dom.gameScore, isPlaying ? `${score}` : state.game.verdict);
+  setText(dom.gamePrompt, isPlaying ? gameHint(result) : isCounting ? "A/B/Cを目標に合わせろ" : isFinished ? "もう一度遊ぶ？" : "Startで目標を表示");
   dom.gameStartButton.hidden = state.game.phase !== "idle" && !isPlaying;
   dom.gameStartButton.textContent = isPlaying ? "Finish" : "Start";
   dom.gameRetryButton.hidden = !isFinished;
   dom.gameQuitButton.hidden = !isFinished;
   dom.gameCountdown.hidden = !isCounting;
-  const countdownNumber = dom.gameCountdown.querySelector("strong");
   const nextCountdown = String(state.game.countdown);
-  if (countdownNumber.textContent !== nextCountdown) {
-    countdownNumber.textContent = nextCountdown;
-    countdownNumber.style.animation = "none";
-    void countdownNumber.offsetWidth;
-    countdownNumber.style.animation = "";
+  if (dom.gameCountdownNumber.textContent !== nextCountdown) {
+    setText(dom.gameCountdownNumber, nextCountdown);
+    dom.gameCountdownNumber.style.animation = "none";
+    void dom.gameCountdownNumber.offsetWidth;
+    dom.gameCountdownNumber.style.animation = "";
   }
 
   dom.gameTargets.classList.toggle("is-hidden", !hasTarget);
@@ -699,9 +777,9 @@ function updateGame(result) {
 }
 
 function syncGameTargets(result, target) {
-  const existingRows = dom.gameTargets.querySelectorAll(".game-target-row");
-  if (existingRows.length !== terminalOrder.length) {
+  if (gameTargetRows.size !== terminalOrder.length) {
     dom.gameTargets.replaceChildren();
+    gameTargetRows.clear();
     terminalOrder.forEach((key) => {
       const meta = phenotypeLabels[key];
       const row = document.createElement("div");
@@ -717,30 +795,35 @@ function syncGameTargets(result, target) {
         <span class="game-target-value"></span>
       `;
       dom.gameTargets.append(row);
+      gameTargetRows.set(key, {
+        row,
+        currentFill: row.querySelector(".game-current-fill"),
+        targetMark: row.querySelector(".game-target-mark"),
+        value: row.querySelector(".game-target-value"),
+      });
     });
   }
 
   terminalOrder.forEach((key) => {
     const current = result.proportions[key] ?? 0;
-    const row = dom.gameTargets.querySelector(`[data-target-key="${key}"]`);
-    row.querySelector(".game-current-fill").style.setProperty("--current", formatPercent(current));
-    row.querySelector(".game-target-mark").style.setProperty("--target", formatPercent(target[key]));
-    row.querySelector(".game-target-value").textContent = `${formatPercent(current)} / ${formatPercent(target[key])}`;
+    const elements = gameTargetRows.get(key);
+    setStyleProperty(elements.currentFill, "--current", formatPercent(current));
+    setStyleProperty(elements.targetMark, "--target", formatPercent(target[key]));
+    setText(elements.value, `${formatPercent(current)} / ${formatPercent(target[key])}`);
   });
 }
 
 function updateCountdownOnly() {
-  const countdownNumber = dom.gameCountdown.querySelector("strong");
-  countdownNumber.textContent = String(state.game.countdown);
-  countdownNumber.style.animation = "none";
-  void countdownNumber.offsetWidth;
-  countdownNumber.style.animation = "";
+  setText(dom.gameCountdownNumber, String(state.game.countdown));
+  dom.gameCountdownNumber.style.animation = "none";
+  void dom.gameCountdownNumber.offsetWidth;
+  dom.gameCountdownNumber.style.animation = "";
 }
 
 function updateScores(result) {
   const dominant = terminalOrder.reduce((best, key) => (result.phenotypes[key] > result.phenotypes[best] ? key : best), terminalOrder[0]);
-  dom.totalFlux.textContent = `Total ${result.total.toFixed(0)}`;
-  dom.insightText.textContent = `今は${phenotypeLabels[dominant].label}が最も多く生成されています。太い線ほど結果への寄与が大きいです。`;
+  setText(dom.totalFlux, `Total ${result.total.toFixed(0)}`);
+  setText(dom.insightText, `今は${phenotypeLabels[dominant].label}が最も多く生成されています。太い線ほど結果への寄与が大きいです。`);
 }
 
 function updateButtons() {
@@ -758,7 +841,8 @@ function showFeedback(message) {
 }
 
 function update(feedback) {
-  const baseline = calculateModel(getBaselineModel());
+  if (!baselineResultCache) baselineResultCache = calculateModel(getBaselineModel());
+  const baseline = baselineResultCache;
   const result = calculateModel(getCurrentModel());
   updateOutputs();
   drawNetwork(result, baseline);
@@ -776,6 +860,8 @@ function renderError(error) {
   dom.networkLoading?.classList.add("hidden");
   if (dom.networkSvg) dom.networkSvg.innerHTML = "";
   if (dom.phenotypeChart) {
+    phenotypeRows.clear();
+    phenotypeChartEmpty = false;
     dom.phenotypeChart.innerHTML = `
       <div class="error-state">
         <strong>計算を続行できません</strong>
@@ -821,6 +907,7 @@ function finishGame(result = calculateModel(getCurrentModel())) {
   gameTimerId = 0;
   gameCountdownTimerId = 0;
   state.game.phase = "finished";
+  state.game.lastRemaining = null;
   state.game.score = scoreAgainstTarget(result);
   state.game.verdict = verdictFor(state.game.score);
   queueUpdate(`${state.game.verdict} ${state.game.score}`);
@@ -831,15 +918,20 @@ function beginGameTimer() {
   state.game.phase = "playing";
   state.game.startedAt = Date.now();
   state.game.endsAt = state.game.startedAt + gameDurationMs;
+  state.game.lastRemaining = null;
   window.clearInterval(gameTimerId);
   gameTimerId = window.setInterval(() => {
     if (state.game.phase !== "playing") return;
+    const remaining = Math.max(0, Math.ceil((state.game.endsAt - Date.now()) / 1000));
     if (Date.now() >= state.game.endsAt) {
       finishGame();
       return;
     }
-    const result = calculateModel(getCurrentModel());
-    updateGame(result);
+    if (remaining !== state.game.lastRemaining) {
+      state.game.lastRemaining = remaining;
+      const result = calculateModel(getCurrentModel());
+      updateGame(result);
+    }
   }, 250);
   queueUpdate("Go");
 }
@@ -864,6 +956,7 @@ function startGame() {
   state.game.countdown = 3;
   state.game.startedAt = 0;
   state.game.endsAt = 0;
+  state.game.lastRemaining = null;
   state.game.verdict = "Target";
   window.clearInterval(gameTimerId);
   window.clearTimeout(gameCountdownTimerId);
@@ -885,6 +978,7 @@ function quitGame() {
   gameTimerId = 0;
   gameCountdownTimerId = 0;
   state.game.phase = "idle";
+  state.game.lastRemaining = null;
   state.game.verdict = "Ready";
   queueUpdate("Ready");
 }
