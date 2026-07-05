@@ -499,7 +499,10 @@ h2 {
   inset: 0;
   z-index: 8;
   display: grid;
-  place-items: center;
+  grid-template-rows: minmax(34px, auto) minmax(72px, 1fr);
+  align-items: center;
+  justify-items: center;
+  gap: 8px;
   padding: 18px;
   text-align: center;
   pointer-events: none;
@@ -514,11 +517,28 @@ h2 {
 
 .game-countdown strong {
   color: var(--focus);
-  font-size: clamp(3.8rem, 10vw, 7rem);
+  font-size: clamp(3.6rem, 8vw, 6.2rem);
   font-weight: 900;
   line-height: 0.9;
   text-shadow: 0 0 28px rgba(248, 212, 107, 0.42);
   animation: countdownPulse 1320ms ease-in-out both;
+}
+
+.game-countdown span {
+  align-self: end;
+  max-width: min(640px, calc(100vw - 48px));
+  border: 1px solid rgba(248, 212, 107, 0.34);
+  border-radius: 999px;
+  padding: 8px 18px;
+  color: var(--text);
+  background:
+    linear-gradient(90deg, rgba(248, 212, 107, 0.22), rgba(100, 210, 255, 0.16)),
+    rgba(15, 18, 21, 0.74);
+  box-shadow: 0 10px 28px rgba(0, 0, 0, 0.26);
+  font-size: clamp(1.05rem, 2.4vw, 1.8rem);
+  font-weight: 900;
+  line-height: 1.2;
+  letter-spacing: 0;
 }
 
 .game-targets {
@@ -1367,12 +1387,9 @@ h2 {
 }
 
 .research-note {
-  max-width: 1120px;
+  width: min(1540px, 100%);
   margin: 8px auto 32px;
   padding: 0 20px;
-}
-
-.research-note {
   text-align: left;
 }
 
