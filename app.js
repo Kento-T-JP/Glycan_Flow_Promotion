@@ -17,19 +17,19 @@ const modelDefaults = {
 };
 
 const links = [
-  { id: "input_core", from: "input", to: "core", base: 120, mode: "supply", label: "E1", action: "出発点から流す", color: "#79a7ff" },
-  { id: "core_high", from: "core", to: "high", base: 46, mode: "escape", label: "E2", action: "上側へ分ける", color: "#f3c34d" },
-  { id: "core_branch", from: "core", to: "branch", base: 74, mode: "enzyme", enzyme: "mgat", label: "E3", action: "中央へ分ける", color: "#8de6a6" },
-  { id: "core_stall", from: "core", to: "stall", base: 34, mode: "stall", label: "E4", action: "下側へ分ける", color: "#ff7a71" },
-  { id: "high_branch", from: "high", to: "branch", base: 44, mode: "enzyme", enzyme: "mgat", label: "E5", action: "上側から中央へ戻す", color: "#8de6a6" },
+  { id: "input_core", from: "input", to: "core", base: 120, mode: "supply", label: "E1", action: "出発点から分岐前へ流す", color: "#79a7ff" },
+  { id: "core_high", from: "core", to: "high", base: 46, mode: "escape", label: "E2", action: "分岐前から上側へ流す", color: "#f3c34d" },
+  { id: "core_branch", from: "core", to: "branch", base: 74, mode: "enzyme", enzyme: "mgat", label: "E3", action: "分岐前から中央へ流す", color: "#8de6a6" },
+  { id: "core_stall", from: "core", to: "stall", base: 34, mode: "stall", label: "E4", action: "分岐前から下側へ流す", color: "#ff7a71" },
+  { id: "high_branch", from: "high", to: "branch", base: 44, mode: "enzyme", enzyme: "mgat", label: "E5", action: "上側から中央へ流す", color: "#8de6a6" },
   { id: "high_stable", from: "high", to: "stable", base: 42, mode: "escape", label: "E6", action: "上側から糖鎖Aを作る", color: "#59d7c5" },
-  { id: "branch_extend", from: "branch", to: "extend", base: 58, mode: "enzyme", enzyme: "galt", label: "E7", action: "上の中間へ進める", color: "#ee78bd" },
-  { id: "branch_finish", from: "branch", to: "finish", base: 38, mode: "enzyme", enzyme: "terminal", label: "E8", action: "下の中間へ進める", color: "#bae75f" },
-  { id: "stall_finish", from: "stall", to: "finish", base: 40, mode: "transit", label: "E9", action: "下側から下の中間へ進める", color: "#bae75f" },
+  { id: "branch_extend", from: "branch", to: "extend", base: 58, mode: "enzyme", enzyme: "galt", label: "E7", action: "中央から上の中間へ流す", color: "#ee78bd" },
+  { id: "branch_finish", from: "branch", to: "finish", base: 38, mode: "enzyme", enzyme: "terminal", label: "E8", action: "中央から下の中間へ流す", color: "#bae75f" },
+  { id: "stall_finish", from: "stall", to: "finish", base: 40, mode: "transit", label: "E9", action: "下側から下の中間へ流す", color: "#bae75f" },
   { id: "extend_stable", from: "extend", to: "stable", base: 26, mode: "escape", label: "E10", action: "上の中間から糖鎖Aを作る", color: "#59d7c5" },
   { id: "extend_adaptive", from: "extend", to: "adaptive", base: 60, mode: "enzyme", enzyme: "galt", label: "E11", action: "上の中間から糖鎖Bを作る", color: "#f3c34d" },
   { id: "finish_adaptive", from: "finish", to: "adaptive", base: 36, mode: "enzyme", enzyme: "terminal", label: "E12", action: "下の中間から糖鎖Bを作る", color: "#f3c34d" },
-  { id: "finish_stress", from: "finish", to: "stressOut", base: 58, mode: "enzyme", enzyme: "terminal", label: "E13", action: "糖鎖Cを作る", color: "#ff7a71" },
+  { id: "finish_stress", from: "finish", to: "stressOut", base: 58, mode: "enzyme", enzyme: "terminal", label: "E13", action: "下の中間から糖鎖Cを作る", color: "#ff7a71" },
 ];
 
 const phenotypeLabels = {

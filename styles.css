@@ -283,7 +283,7 @@ h2 {
 .edge-editor p {
   margin-bottom: 0;
   color: var(--muted);
-  font-size: 0.86rem;
+  font-size: 0.94rem;
   line-height: 1.45;
 }
 
@@ -317,7 +317,7 @@ h2 {
 
 .capacity-slider span {
   color: var(--soft);
-  font-size: 0.82rem;
+  font-size: 0.9rem;
   font-weight: 700;
 }
 
