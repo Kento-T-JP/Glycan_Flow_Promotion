@@ -1,14 +1,14 @@
 :root {
-  --bg: #08100e;
-  --panel: #101a17;
-  --panel-soft: #14211d;
-  --panel-deep: #0c1512;
-  --text: #eff7f3;
-  --muted: #9fb2aa;
-  --soft: #cbd9d3;
-  --line: #263833;
-  --line-strong: #3b534c;
-  --primary: #59d7c5;
+  --bg: #0b0d10;
+  --panel: #15171a;
+  --panel-soft: #1b1e22;
+  --panel-deep: #0f1215;
+  --text: #f4f7f5;
+  --muted: #9aa4ad;
+  --soft: #d4dadf;
+  --line: #2a2f36;
+  --line-strong: #454c55;
+  --primary: #64d2ff;
   --success: #8de6a6;
   --warning: #f3c34d;
   --danger: #ff7a71;
@@ -16,7 +16,7 @@
   --pink: #ee78bd;
   --focus: #f8d46b;
   --radius: 8px;
-  --shadow: 0 20px 54px rgba(0, 0, 0, 0.32);
+  --shadow: 0 18px 38px rgba(0, 0, 0, 0.24);
   font-family:
     Inter, ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI",
     "Hiragino Sans", "Yu Gothic", sans-serif;
@@ -35,7 +35,7 @@ body {
   margin: 0;
   color: var(--text);
   background:
-    linear-gradient(180deg, rgba(89, 215, 197, 0.05), transparent 260px),
+    linear-gradient(180deg, rgba(100, 210, 255, 0.05), transparent 260px),
     var(--bg);
 }
 
@@ -46,8 +46,8 @@ body::before {
   z-index: -1;
   pointer-events: none;
   background-image:
-    linear-gradient(rgba(203, 217, 211, 0.035) 1px, transparent 1px),
-    linear-gradient(90deg, rgba(203, 217, 211, 0.035) 1px, transparent 1px);
+    linear-gradient(rgba(212, 218, 223, 0.025) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(212, 218, 223, 0.025) 1px, transparent 1px);
   background-size: 38px 38px;
 }
 
@@ -80,7 +80,7 @@ button:disabled {
   padding: 10px 12px;
   color: #07110f;
   background: var(--focus);
-  font-weight: 900;
+  font-weight: 760;
   text-decoration: none;
 }
 
@@ -108,7 +108,7 @@ p {
   margin: 0 0 6px;
   color: var(--primary);
   font-size: 0.72rem;
-  font-weight: 950;
+  font-weight: 800;
   letter-spacing: 0;
   text-transform: uppercase;
 }
@@ -131,7 +131,7 @@ h2 {
   gap: 8px;
   color: var(--muted);
   font-size: 0.82rem;
-  font-weight: 850;
+  font-weight: 700;
 }
 
 .quick-guide span {
@@ -189,13 +189,14 @@ h2 {
 .section-title span {
   color: var(--muted);
   font-size: 0.72rem;
-  font-weight: 950;
+  font-weight: 800;
   text-transform: uppercase;
 }
 
 .section-title strong {
   color: var(--primary);
   font-size: 0.88rem;
+  font-weight: 700;
 }
 
 .preset-strip,
@@ -237,7 +238,7 @@ h2 {
   color: var(--soft);
   background: var(--panel-soft);
   font-size: 0.82rem;
-  font-weight: 900;
+  font-weight: 700;
 }
 
 .preset.active,
@@ -250,6 +251,7 @@ h2 {
 .edge-editor h2 {
   margin-bottom: 4px;
   font-size: 1.38rem;
+  font-weight: 760;
 }
 
 .edge-editor p {
@@ -301,13 +303,13 @@ h2 {
 .mini-slider span {
   color: var(--soft);
   font-size: 0.82rem;
-  font-weight: 900;
+  font-weight: 700;
 }
 
 .capacity-slider output,
 .mini-slider output {
   color: var(--warning);
-  font-weight: 950;
+  font-weight: 760;
   text-align: right;
 }
 
@@ -330,7 +332,8 @@ h2 {
 .secondary-action {
   min-height: 42px;
   padding: 0 10px;
-  font-weight: 950;
+  font-weight: 760;
+  white-space: nowrap;
 }
 
 .danger-action {
@@ -362,7 +365,7 @@ h2 {
 .edge-readout span {
   color: var(--muted);
   font-size: 0.72rem;
-  font-weight: 900;
+  font-weight: 760;
   text-transform: uppercase;
 }
 
@@ -402,7 +405,7 @@ h2 {
 .stage-topline h2 {
   color: var(--soft);
   font-size: 0.92rem;
-  font-weight: 850;
+  font-weight: 700;
 }
 
 .flow-legend {
@@ -412,7 +415,7 @@ h2 {
   gap: 10px;
   color: var(--muted);
   font-size: 0.78rem;
-  font-weight: 850;
+  font-weight: 700;
 }
 
 .flow-legend span {
@@ -498,14 +501,14 @@ h2 {
 
 .edge-shadow {
   stroke: rgba(0, 0, 0, 0.5);
-  stroke-width: 19;
+  stroke-width: 15;
   stroke-linecap: round;
   fill: none;
 }
 
 .edge-base {
   stroke: rgba(203, 217, 211, 0.13);
-  stroke-width: 9;
+  stroke-width: 6;
   stroke-linecap: round;
   fill: none;
 }
@@ -520,7 +523,7 @@ h2 {
 
 .edge-hit {
   stroke: transparent;
-  stroke-width: 34;
+  stroke-width: 30;
   stroke-linecap: round;
   fill: none;
   pointer-events: stroke;
@@ -528,7 +531,7 @@ h2 {
 
 .bio-edge.selected .edge-base {
   stroke: var(--focus);
-  stroke-width: 13;
+  stroke-width: 10;
 }
 
 .bio-edge.stopped .edge-flow {
@@ -558,13 +561,13 @@ h2 {
 .edge-label {
   fill: var(--text);
   font-size: 13px;
-  font-weight: 950;
+  font-weight: 800;
 }
 
 .edge-capacity {
   fill: var(--muted);
   font-size: 11px;
-  font-weight: 900;
+  font-weight: 720;
 }
 
 .particle {
@@ -593,7 +596,7 @@ h2 {
 .bio-node text {
   fill: #07110f;
   font-size: 12px;
-  font-weight: 950;
+  font-weight: 800;
   pointer-events: none;
   text-anchor: middle;
   dominant-baseline: central;
@@ -612,14 +615,14 @@ h2 {
 .edge-hint span {
   color: var(--primary);
   font-size: 0.72rem;
-  font-weight: 950;
+  font-weight: 800;
   text-transform: uppercase;
 }
 
 .edge-hint strong {
   color: var(--soft);
   font-size: 0.9rem;
-  font-weight: 850;
+  font-weight: 700;
   text-align: right;
 }
 
@@ -647,7 +650,7 @@ h2 {
 .recommendation-card span {
   color: var(--soft);
   font-size: 0.84rem;
-  font-weight: 900;
+  font-weight: 700;
 }
 
 .recommendation-card strong {
@@ -695,7 +698,7 @@ h2 {
 }
 
 .type-name strong {
-  font-weight: 950;
+  font-weight: 760;
 }
 
 .type-name small {
@@ -706,14 +709,14 @@ h2 {
 .type-value {
   color: var(--type-color);
   font-size: 1.15rem;
-  font-weight: 950;
+  font-weight: 760;
   text-align: right;
 }
 
 .delta {
   color: var(--muted);
   font-size: 0.84rem;
-  font-weight: 950;
+  font-weight: 760;
   text-align: right;
 }
 

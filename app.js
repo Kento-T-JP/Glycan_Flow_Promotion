@@ -12,19 +12,19 @@ const modules = [
 ];
 
 const links = [
-  { id: "input_core", from: "input", to: "core", base: 120, mode: "supply", enzyme: "mannosidase", label: "切りそろえ", color: "#79a7ff" },
-  { id: "core_high", from: "core", to: "high", base: 46, mode: "escape", label: "未加工へ", color: "#f3c34d" },
-  { id: "core_branch", from: "core", to: "branch", base: 74, mode: "enzyme", enzyme: "mgat", label: "枝分かれ", color: "#8de6a6" },
-  { id: "core_stall", from: "core", to: "stall", base: 34, mode: "stall", label: "停滞", color: "#ff7a71" },
-  { id: "high_branch", from: "high", to: "branch", base: 44, mode: "enzyme", enzyme: "mgat", label: "分岐へ戻す", color: "#8de6a6" },
-  { id: "high_stable", from: "high", to: "stable", base: 42, mode: "escape", label: "未加工", color: "#59d7c5" },
-  { id: "branch_extend", from: "branch", to: "extend", base: 58, mode: "enzyme", enzyme: "galt", label: "伸ばす", color: "#ee78bd" },
-  { id: "branch_finish", from: "branch", to: "finish", base: 38, mode: "enzyme", enzyme: "terminal", label: "仕上げへ", color: "#bae75f" },
-  { id: "stall_finish", from: "stall", to: "finish", base: 40, mode: "transit", label: "滞在", color: "#bae75f" },
-  { id: "extend_stable", from: "extend", to: "stable", base: 26, mode: "escape", label: "未仕上げ", color: "#59d7c5" },
-  { id: "extend_adaptive", from: "extend", to: "adaptive", base: 60, mode: "enzyme", enzyme: "galt", label: "枝分かれ", color: "#f3c34d" },
-  { id: "finish_adaptive", from: "finish", to: "adaptive", base: 36, mode: "enzyme", enzyme: "terminal", label: "途中型", color: "#f3c34d" },
-  { id: "finish_stress", from: "finish", to: "stressOut", base: 58, mode: "enzyme", enzyme: "terminal", label: "仕上げ済み", color: "#ff7a71" },
+  { id: "input_core", from: "input", to: "core", base: 120, mode: "supply", enzyme: "mannosidase", enzymeLabel: "MAN1/2", label: "切りそろえ", color: "#79a7ff" },
+  { id: "core_high", from: "core", to: "high", base: 46, mode: "escape", enzymeLabel: "MAN1/2", label: "未加工へ", color: "#f3c34d" },
+  { id: "core_branch", from: "core", to: "branch", base: 74, mode: "enzyme", enzyme: "mgat", enzymeLabel: "MGAT", label: "枝分かれ", color: "#8de6a6" },
+  { id: "core_stall", from: "core", to: "stall", base: 34, mode: "stall", enzymeLabel: "MAN1/2", label: "停滞", color: "#ff7a71" },
+  { id: "high_branch", from: "high", to: "branch", base: 44, mode: "enzyme", enzyme: "mgat", enzymeLabel: "MGAT", label: "分岐へ戻す", color: "#8de6a6" },
+  { id: "high_stable", from: "high", to: "stable", base: 42, mode: "escape", enzymeLabel: "MAN1/2", label: "未加工", color: "#59d7c5" },
+  { id: "branch_extend", from: "branch", to: "extend", base: 58, mode: "enzyme", enzyme: "galt", enzymeLabel: "GalT", label: "伸ばす", color: "#ee78bd" },
+  { id: "branch_finish", from: "branch", to: "finish", base: 38, mode: "enzyme", enzyme: "terminal", enzymeLabel: "ST/FUT", label: "仕上げへ", color: "#bae75f" },
+  { id: "stall_finish", from: "stall", to: "finish", base: 40, mode: "transit", enzymeLabel: "ST/FUT", label: "滞在", color: "#bae75f" },
+  { id: "extend_stable", from: "extend", to: "stable", base: 26, mode: "escape", enzymeLabel: "GalT", label: "未仕上げ", color: "#59d7c5" },
+  { id: "extend_adaptive", from: "extend", to: "adaptive", base: 60, mode: "enzyme", enzyme: "galt", enzymeLabel: "GalT", label: "枝分かれ", color: "#f3c34d" },
+  { id: "finish_adaptive", from: "finish", to: "adaptive", base: 36, mode: "enzyme", enzyme: "terminal", enzymeLabel: "ST/FUT", label: "途中型", color: "#f3c34d" },
+  { id: "finish_stress", from: "finish", to: "stressOut", base: 58, mode: "enzyme", enzyme: "terminal", enzymeLabel: "ST/FUT", label: "仕上げ済み", color: "#ff7a71" },
 ];
 
 const presets = {
@@ -77,10 +77,10 @@ const phenotypeLabels = {
 };
 
 const enzymeNames = {
-  mannosidase: "切りそろえる酵素",
-  mgat: "枝分かれを作る酵素",
-  galt: "枝を伸ばす酵素",
-  terminal: "仕上げる酵素",
+  mannosidase: "Mannosidase",
+  mgat: "MGAT",
+  galt: "GalT",
+  terminal: "ST/FUT",
 };
 
 const targetPlans = {
@@ -291,13 +291,29 @@ function calculateModel(inputModel = getCurrentModel()) {
   return { flows, capacities, phenotypes, total, proportions };
 }
 
+function nodeBoundaryOffset(module) {
+  if (module.shape === "diamond") return 50;
+  if (module.shape === "rect") return 54;
+  if (module.shape === "hex") return 52;
+  return 48;
+}
+
 function pathFor(link) {
   const from = nodeById(link.from);
   const to = nodeById(link.to);
-  const dx = Math.abs(to.x - from.x);
-  const dy = to.y - from.y;
-  const curve = Math.max(82, dx * 0.44);
-  return `M ${from.x} ${from.y} C ${from.x + curve} ${from.y + dy * 0.08}, ${to.x - curve} ${to.y - dy * 0.08}, ${to.x} ${to.y}`;
+  const rawDx = to.x - from.x;
+  const rawDy = to.y - from.y;
+  const length = Math.hypot(rawDx, rawDy) || 1;
+  const ux = rawDx / length;
+  const uy = rawDy / length;
+  const startX = from.x + ux * nodeBoundaryOffset(from);
+  const startY = from.y + uy * nodeBoundaryOffset(from);
+  const endX = to.x - ux * nodeBoundaryOffset(to);
+  const endY = to.y - uy * nodeBoundaryOffset(to);
+  const dx = Math.abs(endX - startX);
+  const dy = endY - startY;
+  const curve = Math.max(70, dx * 0.44);
+  return `M ${startX} ${startY} C ${startX + curve} ${startY + dy * 0.08}, ${endX - curve} ${endY - dy * 0.08}, ${endX} ${endY}`;
 }
 
 function createShape(module, scale = 1) {
@@ -345,14 +361,19 @@ function drawNetwork(result, baseline) {
   const marker = document.createElementNS("http://www.w3.org/2000/svg", "marker");
   const arrow = document.createElementNS("http://www.w3.org/2000/svg", "path");
   marker.setAttribute("id", "flowArrow");
-  marker.setAttribute("viewBox", "0 0 10 10");
-  marker.setAttribute("refX", "7");
-  marker.setAttribute("refY", "5");
-  marker.setAttribute("markerWidth", "5");
-  marker.setAttribute("markerHeight", "5");
+  marker.setAttribute("viewBox", "0 0 8 8");
+  marker.setAttribute("refX", "6.4");
+  marker.setAttribute("refY", "4");
+  marker.setAttribute("markerWidth", "8");
+  marker.setAttribute("markerHeight", "8");
+  marker.setAttribute("markerUnits", "userSpaceOnUse");
   marker.setAttribute("orient", "auto-start-reverse");
-  arrow.setAttribute("d", "M 0 0 L 10 5 L 0 10 z");
-  arrow.setAttribute("fill", "#d6e3dd");
+  arrow.setAttribute("d", "M 1.3 1.1 L 6.7 4 L 1.3 6.9");
+  arrow.setAttribute("fill", "none");
+  arrow.setAttribute("stroke", "#e6f0eb");
+  arrow.setAttribute("stroke-linecap", "round");
+  arrow.setAttribute("stroke-linejoin", "round");
+  arrow.setAttribute("stroke-width", "1.6");
   marker.append(arrow);
   defs.append(marker);
   dom.networkSvg.append(defs);
@@ -373,7 +394,7 @@ function drawNetwork(result, baseline) {
     const selected = link.id === state.selectedEdge;
     const stopped = edgeCapacity(link.id) === 0 || amount < 0.2;
     const path = pathFor(link);
-    const width = stopped ? 2 : 2.5 + Math.min(22, amount / 5.2);
+    const width = stopped ? 1.5 : 2 + Math.min(16, amount / 6);
     const opacity = stopped ? 0.22 : 0.28 + Math.min(0.72, amount / 82);
     const from = nodeById(link.from);
     const to = nodeById(link.to);
@@ -392,9 +413,9 @@ function drawNetwork(result, baseline) {
     group.setAttribute("class", ["bio-edge", selected ? "selected" : "", stopped ? "stopped" : "", delta > 4 ? "increased" : "", delta < -4 ? "decreased" : ""].join(" "));
     group.setAttribute("tabindex", "0");
     group.setAttribute("role", "button");
-    group.setAttribute("aria-label", `${link.label}。Capacity ${edgeCapacity(link.id)}。Flow ${amount.toFixed(0)}。クリックで選択。`);
+    group.setAttribute("aria-label", `${link.label}。${link.enzymeLabel}のCapacity ${edgeCapacity(link.id)}。Flow ${amount.toFixed(0)}。クリックで選択。`);
     group.dataset.edge = link.id;
-    title.textContent = `${link.label}: Capacity ${edgeCapacity(link.id)} / Flow ${amount.toFixed(1)}`;
+    title.textContent = `${link.label}: ${link.enzymeLabel} Capacity ${edgeCapacity(link.id)} / Flow ${amount.toFixed(1)}`;
 
     shadow.setAttribute("d", path);
     shadow.setAttribute("class", "edge-shadow");
@@ -416,7 +437,7 @@ function drawNetwork(result, baseline) {
     cap.setAttribute("x", midX);
     cap.setAttribute("y", midY + 3);
     cap.setAttribute("class", "edge-capacity");
-    cap.textContent = `${edgeCapacity(link.id)} / ${amount.toFixed(0)}`;
+    cap.textContent = `${link.enzymeLabel} · ${edgeCapacity(link.id)}`;
 
     group.append(title, shadow, base, flow, hit, label, cap);
 
@@ -546,10 +567,10 @@ function updateEdgeEditor(result, baseline) {
   const baselineFlow = baseline.flows.get(link.id) ?? 0;
   const delta = flow - baselineFlow;
   const cap = edgeCapacity(link.id);
-  const reaction = link.enzyme ? enzymeNames[link.enzyme] : "分配反応";
+  const reaction = link.enzyme ? enzymeNames[link.enzyme] : link.enzymeLabel;
 
   dom.edgeTitle.textContent = link.label;
-  dom.edgeMeta.textContent = `${nodeById(link.from).name} → ${nodeById(link.to).name} / ${reaction}`;
+  dom.edgeMeta.textContent = `${reaction} Capacity / ${nodeById(link.from).name} → ${nodeById(link.to).name}`;
   dom.edgeStatus.textContent = `Capacity ${cap}`;
   dom.edgeStatus.className = cap === 0 ? "is-ko" : cap > 125 ? "is-high" : cap < 75 ? "is-low" : "";
   dom.selectedEdgeFlow.textContent = flow.toFixed(0);
