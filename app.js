@@ -576,14 +576,20 @@ function updateEdgeEditor(result, baseline) {
 
 function updateChart(result, baseline) {
   if (result.total < 1) {
-    dom.phenotypeChart.innerHTML = `<div class="empty-state">流量 = 0</div>`;
+    if (!dom.phenotypeChart.querySelector(".empty-state")) {
+      dom.phenotypeChart.replaceChildren();
+      const empty = document.createElement("div");
+      empty.className = "empty-state";
+      empty.textContent = "流量 = 0";
+      dom.phenotypeChart.append(empty);
+    }
     return;
   }
 
-  dom.phenotypeChart.innerHTML = "";
   const target = activeGameTarget();
   const hasTarget = state.game.phase !== "idle";
   dom.phenotypeChart.classList.toggle("targeting", hasTarget);
+  syncPhenotypeRows();
   terminalOrder.forEach((key) => {
     const meta = phenotypeLabels[key];
     const currentPercent = Math.round((result.phenotypes[key] / Math.max(result.total, 1)) * 100);
@@ -591,22 +597,50 @@ function updateChart(result, baseline) {
     const targetPercent = Math.round(target[key] * 100);
     const delta = currentPercent - baselinePercent;
     const targetGap = currentPercent - targetPercent;
+    const row = dom.phenotypeChart.querySelector(`[data-phenotype-key="${key}"]`);
+    row.classList.toggle("has-target", hasTarget);
+    row.querySelector(".result-bubble").style.setProperty("--bubble-scale", String(0.68 + currentPercent / 72));
+    row.querySelector(".type-name small").textContent = hasTarget ? "現在" : meta.sub;
+    row.querySelector(".type-value").textContent = `${currentPercent}%`;
+
+    const deltaEl = row.querySelector(".delta");
+    deltaEl.className = `delta ${hasTarget ? "target-delta" : delta > 0 ? "positive" : delta < 0 ? "negative" : ""}`;
+    deltaEl.textContent = hasTarget ? `目標 ${targetPercent}%` : `${delta >= 0 ? "+" : ""}${delta}`;
+
+    row.querySelector(".baseline-fill").style.width = `${baselinePercent}%`;
+    row.querySelector(".target-ghost").style.width = `${targetPercent}%`;
+    row.querySelector(".current-fill").style.width = `${currentPercent}%`;
+    row.querySelector(".target-fill").style.setProperty("--target-left", `${targetPercent}%`);
+
+    const gap = row.querySelector(".fit-gap");
+    gap.className = `fit-gap ${targetGap > 0 ? "over" : "under"}`;
+    gap.style.setProperty("--gap-left", `${Math.min(currentPercent, targetPercent)}%`);
+    gap.style.setProperty("--gap-width", `${Math.abs(targetGap)}%`);
+  });
+}
+
+function syncPhenotypeRows() {
+  const existingRows = dom.phenotypeChart.querySelectorAll(".phenotype-row");
+  if (existingRows.length === terminalOrder.length) return;
+
+  dom.phenotypeChart.replaceChildren();
+  terminalOrder.forEach((key) => {
+    const meta = phenotypeLabels[key];
     const row = document.createElement("div");
-    row.className = `phenotype-row ${hasTarget ? "has-target" : ""}`;
+    row.className = "phenotype-row";
+    row.dataset.phenotypeKey = key;
     row.style.setProperty("--type-color", meta.color);
     row.innerHTML = `
-      <span class="result-bubble" style="--bubble-scale:${0.68 + currentPercent / 72}"></span>
-      <span class="type-name"><strong>${meta.label}</strong><small>${hasTarget ? "現在" : meta.sub}</small></span>
-      <span class="type-value">${currentPercent}%</span>
-      <span class="delta ${hasTarget ? "target-delta" : delta > 0 ? "positive" : delta < 0 ? "negative" : ""}">
-        ${hasTarget ? `目標 ${targetPercent}%` : `${delta >= 0 ? "+" : ""}${delta}`}
-      </span>
+      <span class="result-bubble"></span>
+      <span class="type-name"><strong>${meta.label}</strong><small>${meta.sub}</small></span>
+      <span class="type-value">0%</span>
+      <span class="delta">+0</span>
       <span class="distribution-track" aria-hidden="true">
-        <span class="baseline-fill" style="width:${baselinePercent}%"></span>
-        ${hasTarget ? `<span class="target-ghost" style="width:${targetPercent}%"></span>` : ""}
-        <span class="current-fill" style="width:${currentPercent}%; background:${meta.color}"></span>
-        ${hasTarget ? `<span class="target-fill" style="--target-left:${targetPercent}%"></span>` : ""}
-        ${hasTarget ? `<span class="fit-gap ${targetGap > 0 ? "over" : "under"}" style="--gap-left:${Math.min(currentPercent, targetPercent)}%; --gap-width:${Math.abs(targetGap)}%"></span>` : ""}
+        <span class="baseline-fill"></span>
+        <span class="target-ghost"></span>
+        <span class="current-fill" style="background:${meta.color}"></span>
+        <span class="target-fill"></span>
+        <span class="fit-gap"></span>
       </span>
     `;
     dom.phenotypeChart.append(row);
@@ -630,53 +664,62 @@ function updateGame(result) {
   dom.gameTimer.textContent = isPlaying ? `${remaining}s` : "--";
   dom.gameScoreFill.style.setProperty("--score-width", `${score}%`);
   dom.gameScore.textContent = isPlaying ? `${score}` : state.game.verdict;
-  dom.gamePrompt.textContent = isPlaying ? gameHint(result) : isCounting ? "まもなく開始" : isFinished ? "もう一度遊ぶ？" : "Startで目標を表示";
+  dom.gamePrompt.textContent = isPlaying ? gameHint(result) : isCounting ? "A/B/Cを目標に合わせる" : isFinished ? "もう一度遊ぶ？" : "Startで目標を表示";
   dom.gameStartButton.hidden = state.game.phase !== "idle" && !isPlaying;
   dom.gameStartButton.textContent = isPlaying ? "Finish" : "Start";
   dom.gameRetryButton.hidden = !isFinished;
   dom.gameQuitButton.hidden = !isFinished;
   dom.gameCountdown.hidden = !isCounting;
   const countdownNumber = dom.gameCountdown.querySelector("strong");
-  const countdownText = dom.gameCountdown.querySelector("span");
   const nextCountdown = String(state.game.countdown);
   if (countdownNumber.textContent !== nextCountdown) {
     countdownNumber.textContent = nextCountdown;
     countdownNumber.style.animation = "none";
-    countdownText.style.animation = "none";
     void countdownNumber.offsetWidth;
     countdownNumber.style.animation = "";
-    countdownText.style.animation = "";
   }
 
-  dom.gameTargets.innerHTML = "";
   dom.gameTargets.classList.toggle("is-hidden", !hasTarget);
+  syncGameTargets(result, target);
+}
+
+function syncGameTargets(result, target) {
+  const existingRows = dom.gameTargets.querySelectorAll(".game-target-row");
+  if (existingRows.length !== terminalOrder.length) {
+    dom.gameTargets.replaceChildren();
+    terminalOrder.forEach((key) => {
+      const meta = phenotypeLabels[key];
+      const row = document.createElement("div");
+      row.className = "game-target-row";
+      row.dataset.targetKey = key;
+      row.style.setProperty("--type-color", meta.color);
+      row.innerHTML = `
+        <b>${meta.label}</b>
+        <span class="game-target-track" aria-hidden="true">
+          <span class="game-current-fill"></span>
+          <span class="game-target-mark"></span>
+        </span>
+        <span class="game-target-value"></span>
+      `;
+      dom.gameTargets.append(row);
+    });
+  }
+
   terminalOrder.forEach((key) => {
-    const meta = phenotypeLabels[key];
     const current = result.proportions[key] ?? 0;
-    const row = document.createElement("div");
-    row.className = "game-target-row";
-    row.style.setProperty("--type-color", meta.color);
-    row.innerHTML = `
-      <b>${meta.label}</b>
-      <span class="game-target-track" aria-hidden="true">
-        <span class="game-current-fill" style="--current:${formatPercent(current)}"></span>
-        <span class="game-target-mark" style="--target:${formatPercent(target[key])}"></span>
-      </span>
-      <span>${formatPercent(current)} / ${formatPercent(target[key])}</span>
-    `;
-    dom.gameTargets.append(row);
+    const row = dom.gameTargets.querySelector(`[data-target-key="${key}"]`);
+    row.querySelector(".game-current-fill").style.setProperty("--current", formatPercent(current));
+    row.querySelector(".game-target-mark").style.setProperty("--target", formatPercent(target[key]));
+    row.querySelector(".game-target-value").textContent = `${formatPercent(current)} / ${formatPercent(target[key])}`;
   });
 }
 
 function updateCountdownOnly() {
   const countdownNumber = dom.gameCountdown.querySelector("strong");
-  const countdownText = dom.gameCountdown.querySelector("span");
   countdownNumber.textContent = String(state.game.countdown);
   countdownNumber.style.animation = "none";
-  countdownText.style.animation = "none";
   void countdownNumber.offsetWidth;
   countdownNumber.style.animation = "";
-  countdownText.style.animation = "";
 }
 
 function updateScores(result) {

@@ -500,7 +500,6 @@ h2 {
   z-index: 8;
   display: grid;
   place-items: center;
-  gap: 8px;
   padding: 18px;
   text-align: center;
   pointer-events: none;
@@ -520,14 +519,6 @@ h2 {
   line-height: 0.9;
   text-shadow: 0 0 28px rgba(248, 212, 107, 0.42);
   animation: countdownPulse 1320ms ease-in-out both;
-}
-
-.game-countdown span {
-  color: var(--text);
-  font-size: clamp(1.02rem, 2vw, 1.55rem);
-  font-weight: 850;
-  letter-spacing: 0;
-  animation: countdownText 1320ms ease-in-out both;
 }
 
 .game-targets {
@@ -707,23 +698,11 @@ h2 {
   }
 }
 
-@keyframes countdownText {
-  0%,
-  100% {
-    opacity: 0;
-  }
-  25%,
-  82% {
-    opacity: 1;
-  }
-}
-
 @media (prefers-reduced-motion: reduce) {
   .game-panel.revealing::after,
   .game-panel.revealing .game-reveal span,
   .game-panel.revealing .game-target-row,
-  .game-countdown strong,
-  .game-countdown span {
+  .game-countdown strong {
     animation: none;
   }
 }
@@ -1306,6 +1285,12 @@ h2 {
     linear-gradient(90deg, color-mix(in srgb, var(--type-color) 26%, transparent), color-mix(in srgb, var(--type-color) 10%, transparent));
 }
 
+.phenotype-row:not(.has-target) .target-ghost,
+.phenotype-row:not(.has-target) .target-fill,
+.phenotype-row:not(.has-target) .fit-gap {
+  display: none;
+}
+
 .target-fill {
   z-index: 5;
   left: var(--target-left);
@@ -1358,20 +1343,40 @@ h2 {
 }
 
 .research-note {
-  max-width: 940px;
-  margin: 4px auto 28px;
+  max-width: 1120px;
+  margin: 8px auto 32px;
   padding: 0 20px;
+}
+
+.research-note {
+  text-align: left;
+}
+
+.research-note span {
+  display: block;
+  border-top: 1px solid var(--line);
+  padding-top: 20px;
+  color: var(--primary);
+  font-size: 0.72rem;
+  font-weight: 850;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+}
+
+.research-note h2 {
+  margin: 6px 0 8px;
+  color: var(--text);
+  font-size: clamp(1.35rem, 2vw, 1.9rem);
+  font-weight: 800;
 }
 
 .research-note p {
   margin: 0;
-  border-top: 1px solid var(--line);
-  padding-top: 18px;
   color: var(--muted);
-  font-size: 0.92rem;
+  font-size: 0.98rem;
   font-weight: 650;
-  line-height: 1.8;
-  text-align: center;
+  line-height: 1.75;
+  max-width: 860px;
 }
 
 @keyframes streamFlow {

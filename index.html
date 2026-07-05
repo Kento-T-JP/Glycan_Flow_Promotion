@@ -8,7 +8,7 @@
       name="description"
       content="糖鎖の流れを直接操作し、最終的なA/B/Cの分布変化を観察する静的Webアプリケーション"
     />
-    <link rel="stylesheet" href="styles.css?v=network-side-result-v1" />
+    <link rel="stylesheet" href="styles.css?v=final-polish-v1" />
   </head>
   <body>
     <a class="skip-link" href="#networkSvg">ネットワークへ移動</a>
@@ -151,7 +151,6 @@
           </div>
           <div id="gameCountdown" class="game-countdown" aria-live="polite" hidden>
             <strong>3</strong>
-            <span>A/B/Cを目標数値にしろ！</span>
           </div>
           <div id="gameTargets" class="game-targets" aria-live="polite"></div>
           <div class="game-scorebar" aria-label="目標への近さ">
@@ -200,6 +199,8 @@
     </main>
 
     <section class="research-note" aria-label="研究の展開">
+      <span>Beyond this demo</span>
+      <h2>大規模な糖鎖ネットワークへ</h2>
       <p>
         実際の糖鎖ネットワークは、このデモよりはるかに大きく複雑です。
         私たちは数理最適化とコンピュータを活用し、大規模な流れの解析を効率的かつ精密に行う手法を開発しています。
@@ -212,6 +213,6 @@
       <p class="noscript-message">このシミュレーターを使うには JavaScript を有効にしてください。</p>
     </noscript>
 
-    <script src="app.js?v=network-side-result-v1"></script>
+    <script src="app.js?v=final-polish-v1"></script>
   </body>
 </html>
