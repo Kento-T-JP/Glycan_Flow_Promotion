@@ -42,36 +42,60 @@
         </div>
 
         <section class="model-bridge" aria-label="糖鎖イメージからネットワークモデルへ">
-          <div class="glycan-sketch" aria-hidden="true">
-            <span class="sugar circle"></span>
-            <span class="bond b1"></span>
-            <span class="sugar square"></span>
-            <span class="bond b2"></span>
-            <span class="sugar hex"></span>
-            <span class="branch stem"></span>
-            <span class="branch arm-up"></span>
-            <span class="branch arm-down"></span>
-            <span class="sugar branch-up"></span>
-            <span class="sugar branch-down"></span>
-            <span class="branch twig-up"></span>
-            <span class="branch twig-down"></span>
-            <span class="sugar bud-up"></span>
-            <span class="sugar bud-down"></span>
-          </div>
+          <svg class="bio-glycan" viewBox="0 0 360 180" role="img" aria-label="分岐した糖鎖のイメージ">
+            <defs>
+              <linearGradient id="membraneGradient" x1="0" x2="1">
+                <stop offset="0" stop-color="#79a7ff" stop-opacity="0.18" />
+                <stop offset="0.5" stop-color="#8de6a6" stop-opacity="0.25" />
+                <stop offset="1" stop-color="#ee78bd" stop-opacity="0.18" />
+              </linearGradient>
+              <filter id="softGlow" x="-40%" y="-40%" width="180%" height="180%">
+                <feGaussianBlur stdDeviation="4" result="blur" />
+                <feMerge>
+                  <feMergeNode in="blur" />
+                  <feMergeNode in="SourceGraphic" />
+                </feMerge>
+              </filter>
+            </defs>
+            <path class="cell-membrane" d="M18 120 C72 90 116 148 176 116 C231 86 284 124 342 98" />
+            <path class="glycan-stem" d="M93 112 C94 90 102 74 119 62" />
+            <path class="glycan-link main" d="M119 62 C142 58 154 54 174 44" />
+            <path class="glycan-link branch-a" d="M174 44 C194 28 216 24 237 21" />
+            <path class="glycan-link branch-b" d="M174 44 C197 49 214 62 232 80" />
+            <path class="glycan-link branch-c" d="M119 62 C139 79 158 92 181 105" />
+            <path class="glycan-link branch-d" d="M181 105 C205 112 225 127 246 146" />
+            <path class="glycan-link twig-a" d="M232 80 C249 70 266 62 285 58" />
+            <path class="glycan-link twig-b" d="M181 105 C202 96 224 94 247 98" />
+            <g class="glycan-units" filter="url(#softGlow)">
+              <circle cx="93" cy="112" r="15" fill="#79a7ff" />
+              <rect x="108" y="48" width="25" height="25" rx="7" fill="#8de6a6" />
+              <polygon points="174,29 190,39 190,56 174,66 158,56 158,39" fill="#f3c34d" />
+              <circle cx="237" cy="21" r="14" fill="#ee78bd" />
+              <circle cx="232" cy="80" r="14" fill="#ff7a71" />
+              <rect x="170" y="94" width="25" height="25" rx="7" fill="#bae75f" />
+              <circle cx="246" cy="146" r="14" fill="#79a7ff" />
+              <polygon points="285,45 300,54 300,70 285,79 270,70 270,54" fill="#8de6a6" />
+              <circle cx="247" cy="98" r="11" fill="#f3c34d" />
+            </g>
+            <text class="visual-label" x="22" y="34">Biological glycan</text>
+          </svg>
           <div class="bridge-copy">
-            <strong>糖がつながる構造</strong>
-            <span>分岐する生合成の流れを、計算できるネットワークへ置き換えます</span>
+            <strong>糖鎖の枝分かれを読む</strong>
+            <span>生物の構造を、流れを計算できるネットワークへ変換します</span>
           </div>
-          <div class="bridge-arrow" aria-hidden="true"></div>
-          <div class="model-sketch" aria-hidden="true">
-            <span class="model-node n1"></span>
-            <span class="model-node n2"></span>
-            <span class="model-node n3"></span>
-            <span class="model-node n4"></span>
-            <span class="model-edge e1"></span>
-            <span class="model-edge e2"></span>
-            <span class="model-edge e3"></span>
-          </div>
+          <div class="bridge-arrow" aria-hidden="true"><span>モデル化</span></div>
+          <svg class="network-mini" viewBox="0 0 300 180" role="img" aria-label="糖鎖を抽象化したネットワークモデル">
+            <path class="mini-edge main" d="M42 92 C82 92 97 92 130 92" />
+            <path class="mini-edge upper" d="M130 92 C168 60 198 38 246 31" />
+            <path class="mini-edge middle" d="M130 92 C168 92 198 92 246 92" />
+            <path class="mini-edge lower" d="M130 92 C168 124 198 147 246 154" />
+            <circle class="mini-node source" cx="42" cy="92" r="15" />
+            <circle class="mini-node hub" cx="130" cy="92" r="16" />
+            <circle class="mini-node upper" cx="246" cy="31" r="14" />
+            <circle class="mini-node middle" cx="246" cy="92" r="14" />
+            <circle class="mini-node lower" cx="246" cy="154" r="14" />
+            <text class="visual-label" x="28" y="34">Flow model</text>
+          </svg>
         </section>
 
         <section class="edge-editor" aria-labelledby="edge-editor-title">
