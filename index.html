@@ -8,7 +8,7 @@
       name="description"
       content="糖鎖の流れを直接操作し、最終的なA/B/Cの分布変化を観察する静的Webアプリケーション"
     />
-    <link rel="stylesheet" href="styles.css" />
+    <link rel="stylesheet" href="styles.css?v=target-overlay-v1" />
   </head>
   <body>
     <a class="skip-link" href="#networkSvg">ネットワークへ移動</a>
@@ -159,6 +159,11 @@
             </div>
             <strong id="gameTimer" class="game-timer">--</strong>
           </div>
+          <div id="gameReveal" class="game-reveal" aria-hidden="true">
+            <span></span>
+            <span></span>
+            <span></span>
+          </div>
           <div id="gameTargets" class="game-targets" aria-live="polite"></div>
           <div class="game-scorebar" aria-label="目標への近さ">
             <span id="gameScoreFill"></span>
@@ -169,7 +174,8 @@
           </div>
           <div class="game-actions">
             <button id="gameStartButton" class="primary-action" type="button">Start</button>
-            <button id="gameNewTargetButton" class="secondary-action" type="button">目標変更</button>
+            <button id="gameRetryButton" class="primary-action" type="button" hidden>Retry</button>
+            <button id="gameQuitButton" class="secondary-action" type="button" hidden>Quit</button>
           </div>
         </section>
 
@@ -192,6 +198,6 @@
       <p class="noscript-message">このシミュレーターを使うには JavaScript を有効にしてください。</p>
     </noscript>
 
-    <script src="app.js?v=game-mode"></script>
+    <script src="app.js?v=target-overlay-v1"></script>
   </body>
 </html>

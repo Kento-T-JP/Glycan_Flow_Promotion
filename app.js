@@ -41,13 +41,8 @@ const phenotypeLabels = {
 const nodeOrder = ["input", "core", "high", "branch", "stall", "extend", "finish"];
 const terminalOrder = ["stable", "adaptive", "stress"];
 const gameDurationMs = 30000;
-const gameTargets = [
-  { stable: 0.5, adaptive: 0.3, stress: 0.2 },
-  { stable: 0.25, adaptive: 0.5, stress: 0.25 },
-  { stable: 0.2, adaptive: 0.25, stress: 0.55 },
-  { stable: 0.4, adaptive: 0.2, stress: 0.4 },
-  { stable: 0.34, adaptive: 0.33, stress: 0.33 },
-];
+const revealDurationMs = 1600;
+const defaultGameTarget = { stable: 0.5, adaptive: 0.3, stress: 0.2 };
 
 const state = {
   selectedEdge: "core_branch",
@@ -56,8 +51,8 @@ const state = {
   frame: 0,
   feedback: "",
   game: {
-    playing: false,
-    targetIndex: 0,
+    phase: "idle",
+    target: { ...defaultGameTarget },
     startedAt: 0,
     endsAt: 0,
     score: 0,
@@ -86,12 +81,14 @@ const dom = {
   feedbackToast: document.querySelector("#feedbackToast"),
   gamePanel: document.querySelector(".game-panel"),
   gameTimer: document.querySelector("#gameTimer"),
+  gameReveal: document.querySelector("#gameReveal"),
   gameTargets: document.querySelector("#gameTargets"),
   gameScoreFill: document.querySelector("#gameScoreFill"),
   gameScore: document.querySelector("#gameScore"),
   gamePrompt: document.querySelector("#gamePrompt"),
   gameStartButton: document.querySelector("#gameStartButton"),
-  gameNewTargetButton: document.querySelector("#gameNewTargetButton"),
+  gameRetryButton: document.querySelector("#gameRetryButton"),
+  gameQuitButton: document.querySelector("#gameQuitButton"),
 };
 
 const requiredElements = [
@@ -114,18 +111,21 @@ const requiredElements = [
   dom.feedbackToast,
   dom.gamePanel,
   dom.gameTimer,
+  dom.gameReveal,
   dom.gameTargets,
   dom.gameScoreFill,
   dom.gameScore,
   dom.gamePrompt,
   dom.gameStartButton,
-  dom.gameNewTargetButton,
+  dom.gameRetryButton,
+  dom.gameQuitButton,
 ];
 
 const reduceMotion = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
 let toastTimer = 0;
 let sliderPrimed = false;
 let gameTimerId = 0;
+let gameRevealTimerId = 0;
 
 function defaultCapacities() {
   return Object.fromEntries(links.map((link) => [link.id, 100]));
@@ -247,7 +247,16 @@ function calculateModel(inputModel = getCurrentModel()) {
 }
 
 function activeGameTarget() {
-  return gameTargets[state.game.targetIndex % gameTargets.length];
+  return state.game.target;
+}
+
+function randomGameTarget() {
+  const raw = terminalOrder.map(() => 18 + Math.random() * 64);
+  const total = raw.reduce((sum, value) => sum + value, 0);
+  const rounded = raw.map((value) => Math.max(15, Math.round((value / total) * 100)));
+  const correction = 100 - rounded.reduce((sum, value) => sum + value, 0);
+  rounded[rounded.indexOf(Math.max(...rounded))] += correction;
+  return Object.fromEntries(terminalOrder.map((key, index) => [key, rounded[index] / 100]));
 }
 
 function scoreAgainstTarget(result) {
@@ -525,24 +534,31 @@ function updateChart(result, baseline) {
 
   dom.phenotypeChart.innerHTML = "";
   const target = activeGameTarget();
+  const hasTarget = state.game.phase !== "idle";
+  dom.phenotypeChart.classList.toggle("targeting", hasTarget);
   terminalOrder.forEach((key) => {
     const meta = phenotypeLabels[key];
     const currentPercent = Math.round((result.phenotypes[key] / Math.max(result.total, 1)) * 100);
     const baselinePercent = Math.round((baseline.phenotypes[key] / Math.max(baseline.total, 1)) * 100);
     const targetPercent = Math.round(target[key] * 100);
     const delta = currentPercent - baselinePercent;
+    const targetGap = currentPercent - targetPercent;
     const row = document.createElement("div");
-    row.className = "phenotype-row";
+    row.className = `phenotype-row ${hasTarget ? "has-target" : ""}`;
     row.style.setProperty("--type-color", meta.color);
     row.innerHTML = `
       <span class="result-bubble" style="--bubble-scale:${0.68 + currentPercent / 72}"></span>
-      <span class="type-name"><strong>${meta.label}</strong><small>${meta.sub}</small></span>
+      <span class="type-name"><strong>${meta.label}</strong><small>${hasTarget ? "現在" : meta.sub}</small></span>
       <span class="type-value">${currentPercent}%</span>
-      <span class="delta ${delta > 0 ? "positive" : delta < 0 ? "negative" : ""}">${delta >= 0 ? "+" : ""}${delta}</span>
+      <span class="delta ${hasTarget ? "target-delta" : delta > 0 ? "positive" : delta < 0 ? "negative" : ""}">
+        ${hasTarget ? `目標 ${targetPercent}%` : `${delta >= 0 ? "+" : ""}${delta}`}
+      </span>
       <span class="distribution-track" aria-hidden="true">
         <span class="baseline-fill" style="width:${baselinePercent}%"></span>
+        ${hasTarget ? `<span class="target-ghost" style="width:${targetPercent}%"></span>` : ""}
         <span class="current-fill" style="width:${currentPercent}%; background:${meta.color}"></span>
-        <span class="target-fill" style="--target-left:${targetPercent}%"></span>
+        ${hasTarget ? `<span class="target-fill" style="--target-left:${targetPercent}%"></span>` : ""}
+        ${hasTarget ? `<span class="fit-gap ${targetGap > 0 ? "over" : "under"}" style="--gap-left:${Math.min(currentPercent, targetPercent)}%; --gap-width:${Math.abs(targetGap)}%"></span>` : ""}
       </span>
     `;
     dom.phenotypeChart.append(row);
@@ -552,18 +568,27 @@ function updateChart(result, baseline) {
 function updateGame(result) {
   const target = activeGameTarget();
   const score = scoreAgainstTarget(result);
+  const isPlaying = state.game.phase === "playing";
+  const isRevealing = state.game.phase === "reveal";
+  const isFinished = state.game.phase === "finished";
+  const hasTarget = state.game.phase !== "idle";
   state.game.score = score;
 
-  const remaining = state.game.playing ? Math.max(0, Math.ceil((state.game.endsAt - Date.now()) / 1000)) : null;
-  dom.gamePanel.classList.toggle("playing", state.game.playing);
-  dom.gameTimer.textContent = state.game.playing ? `${remaining}s` : "--";
+  const remaining = isPlaying ? Math.max(0, Math.ceil((state.game.endsAt - Date.now()) / 1000)) : null;
+  dom.gamePanel.classList.toggle("playing", isPlaying);
+  dom.gamePanel.classList.toggle("revealing", isRevealing);
+  dom.gamePanel.classList.toggle("finished", isFinished);
+  dom.gameTimer.textContent = isPlaying ? `${remaining}s` : "--";
   dom.gameScoreFill.style.setProperty("--score-width", `${score}%`);
-  dom.gameScore.textContent = state.game.playing ? `${score}` : state.game.verdict;
-  dom.gamePrompt.textContent = state.game.playing ? gameHint(result) : "Startで30秒チャレンジ";
-  dom.gameStartButton.textContent = state.game.playing ? "Finish" : "Start";
-  dom.gameNewTargetButton.disabled = state.game.playing;
+  dom.gameScore.textContent = isPlaying ? `${score}` : state.game.verdict;
+  dom.gamePrompt.textContent = isPlaying ? gameHint(result) : isRevealing ? "目標が出ます" : isFinished ? "もう一度遊ぶ？" : "Startで目標を表示";
+  dom.gameStartButton.hidden = state.game.phase !== "idle" && !isPlaying;
+  dom.gameStartButton.textContent = isPlaying ? "Finish" : "Start";
+  dom.gameRetryButton.hidden = !isFinished;
+  dom.gameQuitButton.hidden = !isFinished;
 
   dom.gameTargets.innerHTML = "";
+  dom.gameTargets.classList.toggle("is-hidden", !hasTarget);
   terminalOrder.forEach((key) => {
     const meta = phenotypeLabels[key];
     const current = result.proportions[key] ?? 0;
@@ -660,32 +685,25 @@ function resetAll() {
   queueUpdate("Reset");
 }
 
-function chooseNextTarget() {
-  state.game.targetIndex = (state.game.targetIndex + 1) % gameTargets.length;
-  state.game.verdict = "Ready";
-  queueUpdate("目標を変更");
-}
-
 function finishGame(result = calculateModel(getCurrentModel())) {
   window.clearInterval(gameTimerId);
+  window.clearTimeout(gameRevealTimerId);
   gameTimerId = 0;
-  state.game.playing = false;
+  gameRevealTimerId = 0;
+  state.game.phase = "finished";
   state.game.score = scoreAgainstTarget(result);
   state.game.verdict = verdictFor(state.game.score);
   queueUpdate(`${state.game.verdict} ${state.game.score}`);
 }
 
-function startGame() {
-  state.selectedEdge = "core_branch";
-  state.history = [];
-  state.edgeCapacities = defaultCapacities();
-  state.game.playing = true;
+function beginGameTimer() {
+  if (state.game.phase !== "reveal") return;
+  state.game.phase = "playing";
   state.game.startedAt = Date.now();
   state.game.endsAt = state.game.startedAt + gameDurationMs;
-  state.game.verdict = "Go";
   window.clearInterval(gameTimerId);
   gameTimerId = window.setInterval(() => {
-    if (!state.game.playing) return;
+    if (state.game.phase !== "playing") return;
     if (Date.now() >= state.game.endsAt) {
       finishGame();
       return;
@@ -693,15 +711,40 @@ function startGame() {
     const result = calculateModel(getCurrentModel());
     updateGame(result);
   }, 250);
+  queueUpdate("Go");
+}
+
+function startGame() {
+  state.selectedEdge = "core_branch";
+  state.history = [];
+  state.edgeCapacities = defaultCapacities();
+  state.game.phase = "reveal";
+  state.game.target = randomGameTarget();
+  state.game.startedAt = 0;
+  state.game.endsAt = 0;
+  state.game.verdict = "Target";
+  window.clearInterval(gameTimerId);
+  window.clearTimeout(gameRevealTimerId);
+  gameRevealTimerId = window.setTimeout(beginGameTimer, revealDurationMs);
   queueUpdate("Start");
 }
 
 function toggleGame() {
-  if (state.game.playing) {
+  if (state.game.phase === "playing" || state.game.phase === "reveal") {
     finishGame();
     return;
   }
   startGame();
+}
+
+function quitGame() {
+  window.clearInterval(gameTimerId);
+  window.clearTimeout(gameRevealTimerId);
+  gameTimerId = 0;
+  gameRevealTimerId = 0;
+  state.game.phase = "idle";
+  state.game.verdict = "Ready";
+  queueUpdate("Ready");
 }
 
 function bindEvents() {
@@ -725,7 +768,8 @@ function bindEvents() {
   dom.resetButton.addEventListener("click", resetAll);
   dom.undoButton.addEventListener("click", undoIntervention);
   dom.gameStartButton.addEventListener("click", toggleGame);
-  dom.gameNewTargetButton.addEventListener("click", chooseNextTarget);
+  dom.gameRetryButton.addEventListener("click", startGame);
+  dom.gameQuitButton.addEventListener("click", quitGame);
 }
 
 function init() {
