@@ -8,7 +8,7 @@
       name="description"
       content="糖鎖の流れを直接操作し、最終的な糖鎖A/B/Cの分布変化を観察する静的Webアプリケーション"
     />
-    <link rel="stylesheet" href="styles.css?v=mobile-model-v1" />
+    <link rel="stylesheet" href="styles.css?v=game-result-v1" />
   </head>
   <body>
     <a class="skip-link" href="#networkSvg">ネットワークへ移動</a>
@@ -131,6 +131,11 @@
           <div id="gameCountdown" class="game-countdown" aria-live="polite" hidden>
             <span>A/B/Cを目標に合わせろ</span>
             <strong>3</strong>
+          </div>
+          <div id="gameResultFlash" class="game-result-flash" aria-live="polite" hidden>
+            <span>Result</span>
+            <strong id="gameResultTitle">Excellent</strong>
+            <em id="gameResultScore">Score 100</em>
           </div>
           <div id="gameTargets" class="game-targets" aria-live="polite"></div>
           <div class="game-scorebar" aria-label="目標への近さ">

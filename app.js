@@ -105,6 +105,9 @@ const dom = {
   gameReveal: document.querySelector("#gameReveal"),
   gameCountdown: document.querySelector("#gameCountdown"),
   gameCountdownNumber: document.querySelector("#gameCountdown strong"),
+  gameResultFlash: document.querySelector("#gameResultFlash"),
+  gameResultTitle: document.querySelector("#gameResultTitle"),
+  gameResultScore: document.querySelector("#gameResultScore"),
   gameTargets: document.querySelector("#gameTargets"),
   gameScoreFill: document.querySelector("#gameScoreFill"),
   gameScore: document.querySelector("#gameScore"),
@@ -137,6 +140,9 @@ const requiredElements = [
   dom.gameReveal,
   dom.gameCountdown,
   dom.gameCountdownNumber,
+  dom.gameResultFlash,
+  dom.gameResultTitle,
+  dom.gameResultScore,
   dom.gameTargets,
   dom.gameScoreFill,
   dom.gameScore,
@@ -148,6 +154,7 @@ const requiredElements = [
 
 const reduceMotion = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
 let toastTimer = 0;
+let gameResultTimer = 0;
 let sliderPrimed = false;
 let gameTimerId = 0;
 let gameCountdownTimerId = 0;
@@ -814,6 +821,26 @@ function updateCountdownOnly() {
   dom.gameCountdownNumber.style.animation = "";
 }
 
+function hideGameResultFlash() {
+  window.clearTimeout(gameResultTimer);
+  gameResultTimer = 0;
+  dom.gameResultFlash.hidden = true;
+  dom.gameResultFlash.classList.remove("celebrate", "retry");
+}
+
+function showGameResultFlash(verdict, score) {
+  hideGameResultFlash();
+  const isGoodResult = score >= 65;
+  setText(dom.gameResultTitle, verdict);
+  setText(dom.gameResultScore, `Score ${score}`);
+  dom.gameResultFlash.classList.toggle("celebrate", isGoodResult);
+  dom.gameResultFlash.classList.toggle("retry", !isGoodResult);
+  dom.gameResultFlash.hidden = false;
+  gameResultTimer = window.setTimeout(() => {
+    dom.gameResultFlash.hidden = true;
+  }, isGoodResult ? 2400 : 1900);
+}
+
 function updateScores(result) {
   const dominant = terminalOrder.reduce((best, key) => (result.phenotypes[key] > result.phenotypes[best] ? key : best), terminalOrder[0]);
   setText(dom.totalFlux, `Total ${result.total.toFixed(0)}`);
@@ -904,6 +931,7 @@ function finishGame(result = calculateModel(getCurrentModel())) {
   state.game.lastRemaining = null;
   state.game.score = scoreAgainstTarget(result);
   state.game.verdict = verdictFor(state.game.score);
+  showGameResultFlash(state.game.verdict, state.game.score);
   queueUpdate(`${state.game.verdict} ${state.game.score}`);
 }
 
@@ -952,6 +980,7 @@ function startGame() {
   state.game.endsAt = 0;
   state.game.lastRemaining = null;
   state.game.verdict = "Target";
+  hideGameResultFlash();
   window.clearInterval(gameTimerId);
   window.clearTimeout(gameCountdownTimerId);
   gameCountdownTimerId = window.setTimeout(runCountdown, countdownStepMs);
@@ -974,6 +1003,7 @@ function quitGame() {
   state.game.phase = "idle";
   state.game.lastRemaining = null;
   state.game.verdict = "Ready";
+  hideGameResultFlash();
   queueUpdate("Ready");
 }
 

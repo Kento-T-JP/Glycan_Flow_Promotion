@@ -558,6 +558,92 @@ h2 {
   letter-spacing: 0;
 }
 
+.game-result-flash {
+  position: absolute;
+  inset: 0;
+  z-index: 9;
+  display: grid;
+  place-items: center;
+  align-content: center;
+  gap: 8px;
+  padding: 18px;
+  text-align: center;
+  pointer-events: none;
+  background:
+    radial-gradient(circle at 50% 48%, rgba(100, 210, 255, 0.24), transparent 32%),
+    rgba(15, 18, 21, 0.62);
+  animation: resultFlash 1900ms ease-in-out both;
+}
+
+.game-result-flash[hidden] {
+  display: none;
+}
+
+.game-result-flash::before,
+.game-result-flash::after {
+  content: "";
+  position: absolute;
+  left: 50%;
+  top: 50%;
+  width: 150px;
+  height: 150px;
+  border: 1px solid rgba(100, 210, 255, 0.34);
+  border-radius: 999px;
+  opacity: 0;
+  transform: translate(-50%, -50%) scale(0.3);
+}
+
+.game-result-flash.celebrate {
+  background:
+    radial-gradient(circle at 50% 48%, rgba(248, 212, 107, 0.26), transparent 34%),
+    radial-gradient(circle at 38% 42%, rgba(141, 230, 166, 0.18), transparent 24%),
+    rgba(15, 18, 21, 0.58);
+}
+
+.game-result-flash.celebrate::before,
+.game-result-flash.celebrate::after {
+  animation: resultRing 1100ms ease-out forwards;
+}
+
+.game-result-flash.celebrate::after {
+  width: 220px;
+  height: 220px;
+  border-color: rgba(248, 212, 107, 0.36);
+  animation-delay: 160ms;
+}
+
+.game-result-flash span {
+  z-index: 1;
+  color: var(--primary);
+  font-size: 0.9rem;
+  font-weight: 850;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+}
+
+.game-result-flash strong {
+  z-index: 1;
+  color: var(--focus);
+  font-size: clamp(2.8rem, 7vw, 5.4rem);
+  font-weight: 900;
+  line-height: 0.95;
+  text-shadow: 0 0 30px rgba(248, 212, 107, 0.42);
+  animation: resultPop 1200ms ease-out both;
+}
+
+.game-result-flash.retry strong {
+  color: var(--soft);
+  text-shadow: 0 0 24px rgba(203, 217, 211, 0.22);
+}
+
+.game-result-flash em {
+  z-index: 1;
+  color: var(--text);
+  font-style: normal;
+  font-size: clamp(1rem, 2vw, 1.35rem);
+  font-weight: 800;
+}
+
 .game-targets {
   display: grid;
   gap: 10px;
@@ -735,11 +821,61 @@ h2 {
   }
 }
 
+@keyframes resultFlash {
+  0% {
+    opacity: 0;
+  }
+  16%,
+  78% {
+    opacity: 1;
+  }
+  100% {
+    opacity: 0;
+  }
+}
+
+@keyframes resultPop {
+  0% {
+    opacity: 0;
+    transform: translateY(12px) scale(0.74);
+  }
+  24% {
+    opacity: 1;
+    transform: translateY(0) scale(1.1);
+  }
+  70% {
+    opacity: 1;
+    transform: translateY(0) scale(1);
+  }
+  100% {
+    opacity: 0;
+    transform: translateY(-8px) scale(0.94);
+  }
+}
+
+@keyframes resultRing {
+  0% {
+    opacity: 0;
+    transform: translate(-50%, -50%) scale(0.25);
+  }
+  30% {
+    opacity: 1;
+  }
+  100% {
+    opacity: 0;
+    transform: translate(-50%, -50%) scale(1.5);
+  }
+}
+
 @media (prefers-reduced-motion: reduce) {
   .game-panel.revealing::after,
   .game-panel.revealing .game-reveal span,
   .game-panel.revealing .game-target-row,
-  .game-countdown strong {
+  .game-countdown strong,
+  .game-result-flash,
+  .game-result-flash strong,
+  .game-result-flash.celebrate::before,
+  .game-result-flash.celebrate::after {
     animation: none;
   }
 }
