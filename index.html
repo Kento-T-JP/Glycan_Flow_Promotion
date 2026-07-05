@@ -151,6 +151,28 @@
       </section>
 
       <aside class="result-dock" aria-label="結果">
+        <section class="dock-section game-panel" aria-labelledby="game-title">
+          <div class="game-head">
+            <div>
+              <p class="eyebrow">Game Mode</p>
+              <h2 id="game-title">30秒チャレンジ</h2>
+            </div>
+            <strong id="gameTimer" class="game-timer">--</strong>
+          </div>
+          <div id="gameTargets" class="game-targets" aria-live="polite"></div>
+          <div class="game-scorebar" aria-label="目標への近さ">
+            <span id="gameScoreFill"></span>
+          </div>
+          <div class="game-status">
+            <strong id="gameScore">Ready</strong>
+            <span id="gamePrompt">A/B/Cを目標に近づける</span>
+          </div>
+          <div class="game-actions">
+            <button id="gameStartButton" class="primary-action" type="button">Start</button>
+            <button id="gameNewTargetButton" class="secondary-action" type="button">目標変更</button>
+          </div>
+        </section>
+
         <section class="dock-section output-panel" id="output" aria-labelledby="output-title">
           <div class="section-title">
             <span>結果</span>
@@ -170,6 +192,6 @@
       <p class="noscript-message">このシミュレーターを使うには JavaScript を有効にしてください。</p>
     </noscript>
 
-    <script src="app.js?v=e1-source-control"></script>
+    <script src="app.js?v=game-mode"></script>
   </body>
 </html>
