@@ -471,7 +471,7 @@ function updateChart(result, baseline) {
 function updateScores(result) {
   const dominant = terminalOrder.reduce((best, key) => (result.phenotypes[key] > result.phenotypes[best] ? key : best), terminalOrder[0]);
   dom.totalFlux.textContent = `Total ${result.total.toFixed(0)}`;
-  dom.insightText.textContent = `${phenotypeLabels[dominant].label}が最大。バーを動かすと線の太さとA/B/Cが変わります。`;
+  dom.insightText.textContent = `今は${phenotypeLabels[dominant].label}が最も多く生成されています。太い線ほど結果への寄与が大きいです。`;
 }
 
 function updateButtons() {
