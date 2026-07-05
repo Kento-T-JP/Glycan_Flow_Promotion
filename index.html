@@ -41,6 +41,35 @@
           </div>
         </div>
 
+        <section class="model-bridge" aria-label="糖鎖イメージからネットワークモデルへ">
+          <div class="glycan-sketch" aria-hidden="true">
+            <span class="sugar circle"></span>
+            <span class="bond b1"></span>
+            <span class="sugar square"></span>
+            <span class="bond b2"></span>
+            <span class="sugar hex"></span>
+            <span class="branch stem"></span>
+            <span class="branch arm-up"></span>
+            <span class="branch arm-down"></span>
+            <span class="sugar branch-up"></span>
+            <span class="sugar branch-down"></span>
+          </div>
+          <div class="bridge-copy">
+            <strong>糖がつながる構造</strong>
+            <span>分岐する生合成の流れを、計算できるネットワークへ置き換えます</span>
+          </div>
+          <div class="bridge-arrow" aria-hidden="true"></div>
+          <div class="model-sketch" aria-hidden="true">
+            <span class="model-node n1"></span>
+            <span class="model-node n2"></span>
+            <span class="model-node n3"></span>
+            <span class="model-node n4"></span>
+            <span class="model-edge e1"></span>
+            <span class="model-edge e2"></span>
+            <span class="model-edge e3"></span>
+          </div>
+        </section>
+
         <section class="edge-editor" aria-labelledby="edge-editor-title">
           <div class="edge-summary">
             <span>選択中の線</span>
@@ -60,7 +89,7 @@
             <button id="edgePlusButton" class="icon-action" type="button" aria-label="流れやすさを上げる">+</button>
             <button id="edgeResetButton" class="secondary-action" type="button">戻す</button>
             <button class="secondary-action" id="undoButton" type="button" disabled>Undo</button>
-            <button class="secondary-action" id="resetButton" type="button" aria-label="全て標準に戻す">全戻し</button>
+            <button class="secondary-action" id="resetButton" type="button" aria-label="全て標準に戻す">リセット</button>
           </div>
 
           <div class="edge-readout" aria-live="polite">
