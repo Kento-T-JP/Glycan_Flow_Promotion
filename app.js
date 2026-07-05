@@ -41,7 +41,7 @@ const phenotypeLabels = {
 const nodeOrder = ["input", "core", "high", "branch", "stall", "extend", "finish"];
 const terminalOrder = ["stable", "adaptive", "stress"];
 const gameDurationMs = 30000;
-const revealDurationMs = 1600;
+const countdownStepMs = 1400;
 const defaultGameTarget = { stable: 0.5, adaptive: 0.3, stress: 0.2 };
 
 const state = {
@@ -56,6 +56,7 @@ const state = {
     startedAt: 0,
     endsAt: 0,
     score: 0,
+    countdown: 3,
     verdict: "Ready",
   },
 };
@@ -82,6 +83,7 @@ const dom = {
   gamePanel: document.querySelector(".game-panel"),
   gameTimer: document.querySelector("#gameTimer"),
   gameReveal: document.querySelector("#gameReveal"),
+  gameCountdown: document.querySelector("#gameCountdown"),
   gameTargets: document.querySelector("#gameTargets"),
   gameScoreFill: document.querySelector("#gameScoreFill"),
   gameScore: document.querySelector("#gameScore"),
@@ -112,6 +114,7 @@ const requiredElements = [
   dom.gamePanel,
   dom.gameTimer,
   dom.gameReveal,
+  dom.gameCountdown,
   dom.gameTargets,
   dom.gameScoreFill,
   dom.gameScore,
@@ -125,7 +128,8 @@ const reduceMotion = window.matchMedia("(prefers-reduced-motion: reduce)").match
 let toastTimer = 0;
 let sliderPrimed = false;
 let gameTimerId = 0;
-let gameRevealTimerId = 0;
+let gameCountdownTimerId = 0;
+let networkInitialized = false;
 
 function defaultCapacities() {
   return Object.fromEntries(links.map((link) => [link.id, 100]));
@@ -356,99 +360,70 @@ function terminalScale(module, result) {
   return 0.92 + proportion * 0.72;
 }
 
-function drawNetwork(result, baseline) {
+function svgElement(tag, attributes = {}) {
+  const element = document.createElementNS("http://www.w3.org/2000/svg", tag);
+  Object.entries(attributes).forEach(([key, value]) => element.setAttribute(key, value));
+  return element;
+}
+
+function createParticle(link, path, amount, index, shortFlowBoost) {
+  const particle = svgElement("circle", {
+    r: String((shortFlowBoost ? 4.4 : 3.2) + Math.min(4, amount / 34)),
+    fill: link.color,
+    class: "particle",
+  });
+  const animate = svgElement("animateMotion", {
+    dur: `${Math.max(0.9, 4.4 - amount / 36).toFixed(2)}s`,
+    begin: `${index * (shortFlowBoost ? 0.22 : 0.34)}s`,
+    repeatCount: "indefinite",
+    path,
+  });
+  particle.style.color = link.color;
+  particle.append(animate);
+  return particle;
+}
+
+function ensureNetworkElements(result) {
+  if (networkInitialized) return;
   dom.networkSvg.innerHTML = "";
 
   [130, 230, 330].forEach((radius) => {
-    const ring = document.createElementNS("http://www.w3.org/2000/svg", "circle");
-    ring.setAttribute("cx", "515");
-    ring.setAttribute("cy", "325");
-    ring.setAttribute("r", String(radius));
-    ring.setAttribute("class", "field-ring");
-    dom.networkSvg.append(ring);
+    dom.networkSvg.append(svgElement("circle", {
+      cx: "515",
+      cy: "325",
+      r: String(radius),
+      class: "field-ring",
+    }));
   });
 
   links.forEach((link) => {
-    const amount = result.flows.get(link.id) ?? 0;
-    const baselineAmount = baseline.flows.get(link.id) ?? 0;
-    const delta = amount - baselineAmount;
-    const selected = link.id === state.selectedEdge;
-    const stopped = edgeCapacity(link.id) === 0 || amount < 0.2;
     const path = pathFor(link);
-    const width = stopped ? 1.5 : 2 + Math.min(16, amount / 6);
-    const opacity = stopped ? 0.22 : 0.28 + Math.min(0.72, amount / 82);
     const from = nodeById(link.from);
     const to = nodeById(link.to);
     const midX = (from.x + to.x) / 2;
     const midY = (from.y + to.y) / 2;
 
-    const group = document.createElementNS("http://www.w3.org/2000/svg", "g");
-    const title = document.createElementNS("http://www.w3.org/2000/svg", "title");
-    const shadow = document.createElementNS("http://www.w3.org/2000/svg", "path");
-    const base = document.createElementNS("http://www.w3.org/2000/svg", "path");
-    const flow = document.createElementNS("http://www.w3.org/2000/svg", "path");
-    const stream = document.createElementNS("http://www.w3.org/2000/svg", "path");
-    const hit = document.createElementNS("http://www.w3.org/2000/svg", "path");
-    const label = document.createElementNS("http://www.w3.org/2000/svg", "text");
-    const cap = document.createElementNS("http://www.w3.org/2000/svg", "text");
-
-    group.setAttribute("class", ["bio-edge", selected ? "selected" : "", stopped ? "stopped" : "", delta > 4 ? "increased" : "", delta < -4 ? "decreased" : ""].join(" "));
-    group.setAttribute("tabindex", "0");
-    group.setAttribute("role", "button");
-    group.setAttribute("aria-label", `${link.label} ${link.action}。流量 ${amount.toFixed(0)}。クリックで選択。`);
+    const group = svgElement("g", {
+      class: "bio-edge",
+      tabindex: "0",
+      role: "button",
+    });
     group.dataset.edge = link.id;
-    group.dataset.flow = amount.toFixed(6);
-    title.textContent = `${link.label}: ${link.action} / 流量 ${amount.toFixed(1)}`;
 
-    shadow.setAttribute("d", path);
-    shadow.setAttribute("class", "edge-shadow");
-    base.setAttribute("d", path);
-    base.setAttribute("class", "edge-base");
-    flow.setAttribute("d", path);
-    flow.setAttribute("class", "edge-flow");
-    flow.setAttribute("stroke", link.color);
-    flow.setAttribute("stroke-width", width.toFixed(1));
-    flow.setAttribute("opacity", opacity.toFixed(2));
-    stream.setAttribute("d", path);
-    stream.setAttribute("class", "edge-stream");
-    stream.setAttribute("stroke", link.color);
-    stream.setAttribute("stroke-width", Math.max(3.2, Math.min(8, width * 0.42)).toFixed(1));
+    const title = svgElement("title");
+    const shadow = svgElement("path", { d: path, class: "edge-shadow" });
+    const base = svgElement("path", { d: path, class: "edge-base" });
+    const flow = svgElement("path", { d: path, class: "edge-flow", stroke: link.color });
+    const stream = svgElement("path", { d: path, class: "edge-stream", stroke: link.color });
+    const hit = svgElement("path", { d: path, class: "edge-hit" });
+    const label = svgElement("text", { x: midX, y: midY - 16, class: "edge-label" });
+    const cap = svgElement("text", { x: midX, y: midY + 3, class: "edge-capacity" });
+    const particleGroup = svgElement("g", { class: "particle-layer" });
+
     stream.style.color = link.color;
-    stream.style.setProperty("--stream-speed", `${Math.max(0.85, 2.2 - amount / 72).toFixed(2)}s`);
-    hit.setAttribute("d", path);
-    hit.setAttribute("class", "edge-hit");
-
-    label.setAttribute("x", midX);
-    label.setAttribute("y", midY - 16);
-    label.setAttribute("class", "edge-label");
     label.textContent = link.label;
-    cap.setAttribute("x", midX);
-    cap.setAttribute("y", midY + 3);
-    cap.setAttribute("class", "edge-capacity");
-    cap.textContent = amount.toFixed(0);
 
-    group.append(title, shadow, base, flow);
-    if (!stopped) group.append(stream);
-
-    const shortFlowBoost = link.id === "input_core" || link.id === "core_branch";
-    const particleCount = reduceMotion || stopped ? 0 : shortFlowBoost ? 6 : amount > 70 ? 4 : amount > 34 ? 3 : amount > 10 ? 2 : 1;
-    for (let i = 0; i < particleCount; i += 1) {
-      const particle = document.createElementNS("http://www.w3.org/2000/svg", "circle");
-      const animate = document.createElementNS("http://www.w3.org/2000/svg", "animateMotion");
-      particle.setAttribute("r", String((shortFlowBoost ? 4.4 : 3.2) + Math.min(4, amount / 34)));
-      particle.setAttribute("fill", link.color);
-      particle.setAttribute("class", "particle");
-      particle.style.color = link.color;
-      animate.setAttribute("dur", `${Math.max(0.9, 4.4 - amount / 36).toFixed(2)}s`);
-      animate.setAttribute("begin", `${i * (shortFlowBoost ? 0.22 : 0.34)}s`);
-      animate.setAttribute("repeatCount", "indefinite");
-      animate.setAttribute("path", path);
-      particle.append(animate);
-      group.append(particle);
-    }
-
-    group.append(hit, label, cap);
-
+    group.append(title, shadow, base, flow, stream, particleGroup, hit, label, cap);
     group.addEventListener("click", () => selectEdge(link.id));
     group.addEventListener("keydown", (event) => {
       if (event.key === "Enter" || event.key === " ") {
@@ -460,20 +435,79 @@ function drawNetwork(result, baseline) {
   });
 
   modules.forEach((module) => {
-    const group = document.createElementNS("http://www.w3.org/2000/svg", "g");
+    const group = svgElement("g", {
+      class: ["bio-node", module.terminal ? "terminal-node" : ""].join(" "),
+    });
+    group.dataset.node = module.id;
     const shape = createShape(module, terminalScale(module, result));
-    const text = document.createElementNS("http://www.w3.org/2000/svg", "text");
-    const title = document.createElementNS("http://www.w3.org/2000/svg", "title");
-    const amount = module.terminal ? result.phenotypes[module.terminal] ?? 0 : 0;
+    const text = svgElement("text", { x: module.x, y: module.y + 1 });
+    const title = svgElement("title");
 
-    group.setAttribute("class", ["bio-node", module.terminal ? "terminal-node" : ""].join(" "));
-    title.textContent = module.terminal ? `${module.name}: ${amount.toFixed(1)}` : module.name;
     shape.setAttribute("fill", module.color);
-    text.setAttribute("x", module.x);
-    text.setAttribute("y", module.y + 1);
+    shape.dataset.role = "shape";
     text.textContent = module.label;
     group.append(title, shape, text);
     dom.networkSvg.append(group);
+  });
+
+  networkInitialized = true;
+}
+
+function syncParticles(layer, link, path, amount, particleCount, shortFlowBoost) {
+  const current = layer.querySelectorAll(".particle").length;
+  if (current === particleCount) {
+    layer.querySelectorAll(".particle").forEach((particle) => {
+      particle.setAttribute("r", String((shortFlowBoost ? 4.4 : 3.2) + Math.min(4, amount / 34)));
+      particle.querySelector("animateMotion")?.setAttribute("dur", `${Math.max(0.9, 4.4 - amount / 36).toFixed(2)}s`);
+    });
+    return;
+  }
+  layer.replaceChildren();
+  for (let i = 0; i < particleCount; i += 1) {
+    layer.append(createParticle(link, path, amount, i, shortFlowBoost));
+  }
+}
+
+function drawNetwork(result, baseline) {
+  ensureNetworkElements(result);
+
+  links.forEach((link) => {
+    const amount = result.flows.get(link.id) ?? 0;
+    const baselineAmount = baseline.flows.get(link.id) ?? 0;
+    const delta = amount - baselineAmount;
+    const selected = link.id === state.selectedEdge;
+    const stopped = edgeCapacity(link.id) === 0 || amount < 0.2;
+    const path = pathFor(link);
+    const width = stopped ? 1.5 : 2 + Math.min(16, amount / 6);
+    const opacity = stopped ? 0.22 : 0.28 + Math.min(0.72, amount / 82);
+    const group = dom.networkSvg.querySelector(`[data-edge="${link.id}"]`);
+    const stream = group.querySelector(".edge-stream");
+    const particleLayer = group.querySelector(".particle-layer");
+    const shortFlowBoost = link.id === "input_core" || link.id === "core_branch";
+    const particleCount = reduceMotion || stopped ? 0 : shortFlowBoost ? 6 : amount > 70 ? 4 : amount > 34 ? 3 : amount > 10 ? 2 : 1;
+
+    group.setAttribute("class", ["bio-edge", selected ? "selected" : "", stopped ? "stopped" : "", delta > 4 ? "increased" : "", delta < -4 ? "decreased" : ""].join(" "));
+    group.setAttribute("aria-label", `${link.label} ${link.action}。流量 ${amount.toFixed(0)}。クリックで選択。`);
+    group.dataset.flow = amount.toFixed(6);
+    group.querySelector("title").textContent = `${link.label}: ${link.action} / 流量 ${amount.toFixed(1)}`;
+    group.querySelector(".edge-flow").setAttribute("stroke-width", width.toFixed(1));
+    group.querySelector(".edge-flow").setAttribute("opacity", opacity.toFixed(2));
+    stream.setAttribute("stroke-width", Math.max(3.2, Math.min(8, width * 0.42)).toFixed(1));
+    stream.style.display = stopped ? "none" : "";
+    stream.style.setProperty("--stream-speed", `${Math.max(0.85, 2.2 - amount / 72).toFixed(2)}s`);
+    group.querySelector(".edge-capacity").textContent = amount.toFixed(0);
+    syncParticles(particleLayer, link, path, amount, particleCount, shortFlowBoost);
+  });
+
+  modules.forEach((module) => {
+    const group = dom.networkSvg.querySelector(`[data-node="${module.id}"]`);
+    const amount = module.terminal ? result.phenotypes[module.terminal] ?? 0 : 0;
+    const previousShape = group.querySelector("[data-role='shape']");
+    const nextShape = createShape(module, terminalScale(module, result));
+    nextShape.setAttribute("fill", module.color);
+    nextShape.dataset.role = "shape";
+    previousShape.replaceWith(nextShape);
+    group.querySelector("title").textContent = module.terminal ? `${module.name}: ${amount.toFixed(1)}` : module.name;
   });
 }
 
@@ -583,23 +617,36 @@ function updateGame(result) {
   const target = activeGameTarget();
   const score = scoreAgainstTarget(result);
   const isPlaying = state.game.phase === "playing";
-  const isRevealing = state.game.phase === "reveal";
+  const isCounting = state.game.phase === "countdown";
   const isFinished = state.game.phase === "finished";
   const hasTarget = state.game.phase !== "idle";
   state.game.score = score;
 
   const remaining = isPlaying ? Math.max(0, Math.ceil((state.game.endsAt - Date.now()) / 1000)) : null;
   dom.gamePanel.classList.toggle("playing", isPlaying);
-  dom.gamePanel.classList.toggle("revealing", isRevealing);
+  dom.gamePanel.classList.toggle("revealing", isCounting);
+  dom.gamePanel.classList.toggle("counting", isCounting);
   dom.gamePanel.classList.toggle("finished", isFinished);
   dom.gameTimer.textContent = isPlaying ? `${remaining}s` : "--";
   dom.gameScoreFill.style.setProperty("--score-width", `${score}%`);
   dom.gameScore.textContent = isPlaying ? `${score}` : state.game.verdict;
-  dom.gamePrompt.textContent = isPlaying ? gameHint(result) : isRevealing ? "目標が出ます" : isFinished ? "もう一度遊ぶ？" : "Startで目標を表示";
+  dom.gamePrompt.textContent = isPlaying ? gameHint(result) : isCounting ? "まもなく開始" : isFinished ? "もう一度遊ぶ？" : "Startで目標を表示";
   dom.gameStartButton.hidden = state.game.phase !== "idle" && !isPlaying;
   dom.gameStartButton.textContent = isPlaying ? "Finish" : "Start";
   dom.gameRetryButton.hidden = !isFinished;
   dom.gameQuitButton.hidden = !isFinished;
+  dom.gameCountdown.hidden = !isCounting;
+  const countdownNumber = dom.gameCountdown.querySelector("strong");
+  const countdownText = dom.gameCountdown.querySelector("span");
+  const nextCountdown = String(state.game.countdown);
+  if (countdownNumber.textContent !== nextCountdown) {
+    countdownNumber.textContent = nextCountdown;
+    countdownNumber.style.animation = "none";
+    countdownText.style.animation = "none";
+    void countdownNumber.offsetWidth;
+    countdownNumber.style.animation = "";
+    countdownText.style.animation = "";
+  }
 
   dom.gameTargets.innerHTML = "";
   dom.gameTargets.classList.toggle("is-hidden", !hasTarget);
@@ -701,9 +748,9 @@ function resetAll() {
 
 function finishGame(result = calculateModel(getCurrentModel())) {
   window.clearInterval(gameTimerId);
-  window.clearTimeout(gameRevealTimerId);
+  window.clearTimeout(gameCountdownTimerId);
   gameTimerId = 0;
-  gameRevealTimerId = 0;
+  gameCountdownTimerId = 0;
   state.game.phase = "finished";
   state.game.score = scoreAgainstTarget(result);
   state.game.verdict = verdictFor(state.game.score);
@@ -711,7 +758,7 @@ function finishGame(result = calculateModel(getCurrentModel())) {
 }
 
 function beginGameTimer() {
-  if (state.game.phase !== "reveal") return;
+  if (state.game.phase !== "countdown") return;
   state.game.phase = "playing";
   state.game.startedAt = Date.now();
   state.game.endsAt = state.game.startedAt + gameDurationMs;
@@ -728,23 +775,35 @@ function beginGameTimer() {
   queueUpdate("Go");
 }
 
+function runCountdown() {
+  if (state.game.phase !== "countdown") return;
+  if (state.game.countdown <= 1) {
+    beginGameTimer();
+    return;
+  }
+  state.game.countdown -= 1;
+  queueUpdate();
+  gameCountdownTimerId = window.setTimeout(runCountdown, countdownStepMs);
+}
+
 function startGame() {
   state.selectedEdge = "core_branch";
   state.history = [];
   state.edgeCapacities = defaultCapacities();
-  state.game.phase = "reveal";
+  state.game.phase = "countdown";
   state.game.target = randomGameTarget();
+  state.game.countdown = 3;
   state.game.startedAt = 0;
   state.game.endsAt = 0;
   state.game.verdict = "Target";
   window.clearInterval(gameTimerId);
-  window.clearTimeout(gameRevealTimerId);
-  gameRevealTimerId = window.setTimeout(beginGameTimer, revealDurationMs);
+  window.clearTimeout(gameCountdownTimerId);
+  gameCountdownTimerId = window.setTimeout(runCountdown, countdownStepMs);
   queueUpdate("Start");
 }
 
 function toggleGame() {
-  if (state.game.phase === "playing" || state.game.phase === "reveal") {
+  if (state.game.phase === "playing" || state.game.phase === "countdown") {
     finishGame();
     return;
   }
@@ -753,9 +812,9 @@ function toggleGame() {
 
 function quitGame() {
   window.clearInterval(gameTimerId);
-  window.clearTimeout(gameRevealTimerId);
+  window.clearTimeout(gameCountdownTimerId);
   gameTimerId = 0;
-  gameRevealTimerId = 0;
+  gameCountdownTimerId = 0;
   state.game.phase = "idle";
   state.game.verdict = "Ready";
   queueUpdate("Ready");

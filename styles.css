@@ -494,6 +494,42 @@ h2 {
   animation: ringBurst 1400ms ease-out forwards;
 }
 
+.game-countdown {
+  position: absolute;
+  inset: 0;
+  z-index: 8;
+  display: grid;
+  place-items: center;
+  gap: 8px;
+  padding: 18px;
+  text-align: center;
+  pointer-events: none;
+  background:
+    radial-gradient(circle at 50% 42%, rgba(248, 212, 107, 0.24), transparent 28%),
+    rgba(15, 18, 21, 0.58);
+}
+
+.game-countdown[hidden] {
+  display: none;
+}
+
+.game-countdown strong {
+  color: var(--focus);
+  font-size: clamp(3.8rem, 10vw, 7rem);
+  font-weight: 900;
+  line-height: 0.9;
+  text-shadow: 0 0 28px rgba(248, 212, 107, 0.42);
+  animation: countdownPulse 1320ms ease-in-out both;
+}
+
+.game-countdown span {
+  color: var(--text);
+  font-size: clamp(1.02rem, 2vw, 1.55rem);
+  font-weight: 850;
+  letter-spacing: 0;
+  animation: countdownText 1320ms ease-in-out both;
+}
+
 .game-targets {
   display: grid;
   gap: 10px;
@@ -652,10 +688,42 @@ h2 {
   }
 }
 
+@keyframes countdownPulse {
+  0% {
+    opacity: 0;
+    transform: translateY(12px) scale(0.82);
+  }
+  28% {
+    opacity: 1;
+    transform: translateY(0) scale(1.08);
+  }
+  78% {
+    opacity: 1;
+    transform: translateY(0) scale(1);
+  }
+  100% {
+    opacity: 0;
+    transform: translateY(-10px) scale(0.92);
+  }
+}
+
+@keyframes countdownText {
+  0%,
+  100% {
+    opacity: 0;
+  }
+  25%,
+  82% {
+    opacity: 1;
+  }
+}
+
 @media (prefers-reduced-motion: reduce) {
   .game-panel.revealing::after,
   .game-panel.revealing .game-reveal span,
-  .game-panel.revealing .game-target-row {
+  .game-panel.revealing .game-target-row,
+  .game-countdown strong,
+  .game-countdown span {
     animation: none;
   }
 }
@@ -670,7 +738,7 @@ h2 {
 
 .network-stage {
   display: grid;
-  grid-template-rows: auto auto auto minmax(520px, 1fr) auto;
+  grid-template-rows: auto auto auto auto minmax(520px, 1fr) auto;
   gap: 12px;
   padding: 14px;
 }
@@ -1343,8 +1411,66 @@ h2 {
 }
 
 @media (min-width: 1221px) {
-  .result-dock {
-    padding-top: clamp(340px, 52vh, 500px);
+  .network-stage {
+    position: relative;
+    grid-template-rows: auto auto auto minmax(520px, 1fr) auto;
+  }
+
+  .network-wrap {
+    grid-row: 4;
+    grid-column: 1;
+  }
+
+  .edge-hint {
+    grid-row: 5;
+    grid-column: 1;
+  }
+
+  .network-stage > .game-panel {
+    grid-row: 4;
+    grid-column: 1;
+    z-index: 6;
+    align-self: start;
+    justify-self: center;
+    width: min(920px, calc(100% - 32px));
+    margin-top: 14px;
+    grid-template-columns: minmax(150px, 0.72fr) minmax(280px, 1.3fr) minmax(110px, 0.45fr) minmax(150px, 0.58fr);
+    grid-template-areas:
+      "head targets score actions"
+      "head targets bar actions";
+    gap: 10px 14px;
+    align-items: center;
+    padding: 12px;
+  }
+
+  .network-stage > .game-panel .game-head {
+    grid-area: head;
+    align-self: stretch;
+  }
+
+  .network-stage > .game-panel .game-targets {
+    grid-area: targets;
+  }
+
+  .network-stage > .game-panel .game-scorebar {
+    grid-area: bar;
+  }
+
+  .network-stage > .game-panel .game-status {
+    grid-area: score;
+    display: grid;
+    justify-items: start;
+    gap: 4px;
+  }
+
+  .network-stage > .game-panel .game-actions {
+    grid-area: actions;
+    display: grid;
+    align-self: stretch;
+  }
+
+  .network-stage > .game-panel .game-target-row {
+    grid-template-columns: 22px minmax(0, 1fr) 82px;
   }
 }
 

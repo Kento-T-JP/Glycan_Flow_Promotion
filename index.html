@@ -8,7 +8,7 @@
       name="description"
       content="糖鎖の流れを直接操作し、最終的なA/B/Cの分布変化を観察する静的Webアプリケーション"
     />
-    <link rel="stylesheet" href="styles.css?v=edge-flow-v1" />
+    <link rel="stylesheet" href="styles.css?v=countdown-layout-v2" />
   </head>
   <body>
     <a class="skip-link" href="#networkSvg">ネットワークへ移動</a>
@@ -136,21 +136,6 @@
           </div>
         </section>
 
-        <div class="network-wrap">
-          <div class="state-overlay" id="networkLoading">Loading</div>
-          <svg id="networkSvg" class="network-svg" viewBox="0 0 1040 650" role="img" aria-labelledby="networkTitle networkDesc">
-            <title id="networkTitle">糖鎖生合成ネットワーク</title>
-            <desc id="networkDesc">線を選択して通しやすさを変更すると、流量と最終分布が変化します。</desc>
-          </svg>
-        </div>
-
-        <div class="edge-hint" id="edgeHint" aria-live="polite">
-          <span>結果の読み方</span>
-          <strong id="insightText">通しやすさを変えると下流の流量が再配分されます。</strong>
-        </div>
-      </section>
-
-      <aside class="result-dock" aria-label="結果">
         <section class="dock-section game-panel" aria-labelledby="game-title">
           <div class="game-head">
             <div>
@@ -163,6 +148,10 @@
             <span></span>
             <span></span>
             <span></span>
+          </div>
+          <div id="gameCountdown" class="game-countdown" aria-live="polite" hidden>
+            <strong>3</strong>
+            <span>A/B/Cを目標数値にしろ！</span>
           </div>
           <div id="gameTargets" class="game-targets" aria-live="polite"></div>
           <div class="game-scorebar" aria-label="目標への近さ">
@@ -179,6 +168,21 @@
           </div>
         </section>
 
+        <div class="network-wrap">
+          <div class="state-overlay" id="networkLoading">Loading</div>
+          <svg id="networkSvg" class="network-svg" viewBox="0 0 1040 650" role="img" aria-labelledby="networkTitle networkDesc">
+            <title id="networkTitle">糖鎖生合成ネットワーク</title>
+            <desc id="networkDesc">線を選択して通しやすさを変更すると、流量と最終分布が変化します。</desc>
+          </svg>
+        </div>
+
+        <div class="edge-hint" id="edgeHint" aria-live="polite">
+          <span>結果の読み方</span>
+          <strong id="insightText">通しやすさを変えると下流の流量が再配分されます。</strong>
+        </div>
+      </section>
+
+      <aside class="result-dock" aria-label="結果">
         <section class="dock-section output-panel" id="output" aria-labelledby="output-title">
           <div class="section-title">
             <span>結果</span>
@@ -198,6 +202,6 @@
       <p class="noscript-message">このシミュレーターを使うには JavaScript を有効にしてください。</p>
     </noscript>
 
-    <script src="app.js?v=edge-flow-v1"></script>
+    <script src="app.js?v=network-perf-v1"></script>
   </body>
 </html>
