@@ -417,20 +417,33 @@ h2 {
 
 .model-bridge {
   display: grid;
-  grid-template-columns: 168px minmax(180px, 1fr) 34px 160px;
-  gap: 12px;
+  grid-template-columns: minmax(220px, 1fr) 54px minmax(180px, 1fr);
+  grid-template-areas:
+    "glycan arrow model"
+    "copy copy copy";
+  gap: 10px 18px;
   align-items: center;
-  min-height: 86px;
+  min-height: 104px;
   border: 1px solid var(--line);
   border-radius: var(--radius);
-  padding: 12px;
+  padding: 14px 16px;
   background: rgba(244, 247, 245, 0.035);
 }
 
 .glycan-sketch,
 .model-sketch {
   position: relative;
-  min-height: 62px;
+  min-height: 78px;
+  justify-self: center;
+  width: 220px;
+}
+
+.glycan-sketch {
+  grid-area: glycan;
+}
+
+.model-sketch {
+  grid-area: model;
 }
 
 .sugar,
@@ -445,47 +458,68 @@ h2 {
 
 .sugar {
   z-index: 2;
-  width: 18px;
-  height: 18px;
+  width: 23px;
+  height: 23px;
   border: 2px solid rgba(255, 255, 255, 0.78);
-  box-shadow: 0 0 14px rgba(100, 210, 255, 0.22);
+  box-shadow:
+    0 0 16px rgba(100, 210, 255, 0.22),
+    inset 0 0 8px rgba(255, 255, 255, 0.18);
 }
 
 .sugar.circle {
-  left: 12px;
-  top: 22px;
+  left: 8px;
+  top: 30px;
   border-radius: 999px;
   background: var(--info);
 }
 
 .sugar.square {
-  left: 56px;
-  top: 22px;
-  border-radius: 4px;
+  left: 55px;
+  top: 30px;
+  border-radius: 6px;
   background: var(--success);
 }
 
 .sugar.hex {
-  left: 100px;
-  top: 22px;
+  left: 104px;
+  top: 30px;
   clip-path: polygon(25% 5%, 75% 5%, 100% 50%, 75% 95%, 25% 95%, 0 50%);
   background: var(--warning);
 }
 
 .sugar.branch-up,
 .sugar.branch-down {
-  left: 136px;
+  left: 154px;
   border-radius: 999px;
 }
 
 .sugar.branch-up {
-  top: 4px;
+  top: 6px;
   background: var(--pink);
 }
 
 .sugar.branch-down {
-  top: 42px;
+  top: 56px;
   background: var(--danger);
+}
+
+.sugar.bud-up,
+.sugar.bud-down {
+  width: 18px;
+  height: 18px;
+  border-radius: 6px;
+}
+
+.sugar.bud-up {
+  left: 195px;
+  top: 0;
+  background: var(--success);
+}
+
+.sugar.bud-down {
+  left: 196px;
+  top: 66px;
+  background: var(--info);
 }
 
 .bond,
@@ -499,40 +533,57 @@ h2 {
 
 .bond.b1 {
   left: 30px;
-  top: 31px;
-  width: 28px;
+  top: 41px;
+  width: 27px;
 }
 
 .bond.b2 {
-  left: 74px;
-  top: 31px;
+  left: 78px;
+  top: 41px;
   width: 28px;
 }
 
 .branch.stem {
-  left: 118px;
-  top: 31px;
-  width: 18px;
+  left: 126px;
+  top: 41px;
+  width: 30px;
 }
 
 .branch.arm-up {
-  left: 126px;
-  top: 29px;
-  width: 25px;
-  transform: rotate(-38deg);
+  left: 145px;
+  top: 39px;
+  width: 31px;
+  transform: rotate(-49deg);
 }
 
 .branch.arm-down {
-  left: 126px;
-  top: 33px;
-  width: 25px;
-  transform: rotate(38deg);
+  left: 145px;
+  top: 43px;
+  width: 31px;
+  transform: rotate(49deg);
+}
+
+.branch.twig-up {
+  left: 176px;
+  top: 16px;
+  width: 28px;
+  transform: rotate(-31deg);
+}
+
+.branch.twig-down {
+  left: 176px;
+  top: 66px;
+  width: 28px;
+  transform: rotate(31deg);
 }
 
 .bridge-copy {
   display: grid;
   gap: 4px;
+  grid-area: copy;
+  justify-self: center;
   min-width: 0;
+  text-align: center;
 }
 
 .bridge-copy strong {
@@ -549,8 +600,10 @@ h2 {
 }
 
 .bridge-arrow {
+  grid-area: arrow;
   position: relative;
-  width: 34px;
+  justify-self: center;
+  width: 54px;
   height: 2px;
   background: var(--primary);
 }
@@ -577,49 +630,49 @@ h2 {
 }
 
 .model-node.n1 {
-  left: 10px;
-  top: 23px;
+  left: 18px;
+  top: 31px;
   background: var(--info);
 }
 
 .model-node.n2 {
-  left: 58px;
-  top: 23px;
+  left: 72px;
+  top: 31px;
   background: var(--success);
 }
 
 .model-node.n3 {
-  left: 112px;
-  top: 6px;
+  left: 132px;
+  top: 9px;
   background: var(--warning);
 }
 
 .model-node.n4 {
-  left: 112px;
-  top: 42px;
+  left: 132px;
+  top: 57px;
   background: var(--danger);
 }
 
 .model-edge.e1 {
-  left: 26px;
-  top: 31px;
-  width: 34px;
+  left: 34px;
+  top: 39px;
+  width: 40px;
   background: var(--primary);
 }
 
 .model-edge.e2 {
-  left: 73px;
-  top: 28px;
-  width: 43px;
-  transform: rotate(-24deg);
+  left: 87px;
+  top: 36px;
+  width: 52px;
+  transform: rotate(-27deg);
   background: var(--warning);
 }
 
 .model-edge.e3 {
-  left: 73px;
-  top: 36px;
-  width: 43px;
-  transform: rotate(24deg);
+  left: 87px;
+  top: 45px;
+  width: 52px;
+  transform: rotate(27deg);
   background: var(--danger);
 }
 
@@ -959,7 +1012,7 @@ h2 {
   }
 
   .model-bridge {
-    grid-template-columns: 168px minmax(180px, 1fr) 34px 160px;
+    grid-template-columns: minmax(220px, 1fr) 54px minmax(180px, 1fr);
   }
 
   .phenotype-chart {
@@ -1002,12 +1055,17 @@ h2 {
   }
 
   .model-bridge {
-    grid-template-columns: minmax(145px, 168px) minmax(0, 1fr);
+    grid-template-columns: minmax(220px, 1fr) 54px minmax(180px, 1fr);
+    gap: 12px 16px;
   }
 
-  .bridge-arrow,
+  .bridge-arrow {
+    justify-self: center;
+  }
+
   .model-sketch {
-    display: none;
+    justify-self: center;
+    width: 180px;
   }
 
   .network-stage {
@@ -1054,6 +1112,29 @@ h2 {
 
   .quick-guide {
     grid-template-columns: 1fr;
+  }
+
+  .model-bridge {
+    grid-template-columns: 1fr;
+    grid-template-areas:
+      "glycan"
+      "copy"
+      "arrow"
+      "model";
+  }
+
+  .glycan-sketch,
+  .model-sketch {
+    justify-self: center;
+    width: 220px;
+  }
+
+  .bridge-copy {
+    text-align: center;
+  }
+
+  .bridge-arrow {
+    transform: rotate(90deg);
   }
 
   .edge-actions {
