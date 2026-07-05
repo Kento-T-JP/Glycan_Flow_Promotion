@@ -1819,24 +1819,34 @@ h2 {
   }
 
   .bridge-arrow {
-    width: 72px;
-    height: 78px;
+    width: 156px;
+    height: 84px;
+    justify-self: center;
+    place-items: center;
+  }
+
+  .bridge-arrow span {
+    position: absolute;
+    left: 0;
+    top: 50%;
+    transform: translateY(-50%);
+    font-size: 1.35rem;
   }
 
   .bridge-arrow::before {
-    top: 24px;
-    bottom: 9px;
-    left: calc(50% - 1.5px);
-    right: auto;
+    top: 10px;
+    bottom: 12px;
+    left: auto;
+    right: 22px;
     width: 3px;
     height: auto;
   }
 
   .bridge-arrow::after {
     top: auto;
-    right: auto;
-    bottom: 8px;
-    left: calc(50% - 6px);
+    right: 16px;
+    bottom: 10px;
+    left: auto;
     border-top: 0;
     border-right: 3px solid var(--primary);
     border-bottom: 3px solid var(--primary);
