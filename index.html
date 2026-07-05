@@ -8,7 +8,7 @@
       name="description"
       content="糖鎖の流れを直接操作し、最終的なA/B/Cの分布変化を観察する静的Webアプリケーション"
     />
-    <link rel="stylesheet" href="styles.css?v=countdown-layout-v2" />
+    <link rel="stylesheet" href="styles.css?v=network-side-result-v1" />
   </head>
   <body>
     <a class="skip-link" href="#networkSvg">ネットワークへ移動</a>
@@ -102,7 +102,7 @@
             <circle class="mini-node upper" cx="246" cy="31" r="14" />
             <circle class="mini-node middle" cx="246" cy="92" r="14" />
             <circle class="mini-node lower" cx="246" cy="154" r="14" />
-            <text class="visual-label" x="28" y="34">Flow Network model</text>
+            <text class="visual-label" x="28" y="34">Flow Network</text>
           </svg>
         </section>
 
@@ -123,8 +123,8 @@
             <button id="edgeKoButton" class="danger-action" type="button">停止</button>
             <button id="edgeMinusButton" class="icon-action" type="button" aria-label="流れやすさを下げる">-</button>
             <button id="edgePlusButton" class="icon-action" type="button" aria-label="流れやすさを上げる">+</button>
-            <button id="edgeResetButton" class="secondary-action" type="button">戻す</button>
-            <button class="secondary-action" id="undoButton" type="button" disabled>Undo</button>
+            <button id="edgeResetButton" class="secondary-action" type="button" aria-label="選択中の線だけを標準値に戻す">標準</button>
+            <button class="secondary-action" id="undoButton" type="button" aria-label="直前の操作を取り消す" disabled>取消</button>
             <button class="secondary-action" id="resetButton" type="button" aria-label="全て標準に戻す">リセット</button>
           </div>
 
@@ -168,12 +168,27 @@
           </div>
         </section>
 
-        <div class="network-wrap">
-          <div class="state-overlay" id="networkLoading">Loading</div>
-          <svg id="networkSvg" class="network-svg" viewBox="0 0 1040 650" role="img" aria-labelledby="networkTitle networkDesc">
-            <title id="networkTitle">糖鎖生合成ネットワーク</title>
-            <desc id="networkDesc">線を選択して通しやすさを変更すると、流量と最終分布が変化します。</desc>
-          </svg>
+        <div class="network-row">
+          <div class="network-wrap">
+            <div class="state-overlay" id="networkLoading">Loading</div>
+            <svg id="networkSvg" class="network-svg" viewBox="0 0 1040 650" role="img" aria-labelledby="networkTitle networkDesc">
+              <title id="networkTitle">糖鎖生合成ネットワーク</title>
+              <desc id="networkDesc">線を選択して通しやすさを変更すると、流量と最終分布が変化します。</desc>
+            </svg>
+          </div>
+
+          <aside class="result-dock" aria-label="結果">
+            <section class="dock-section output-panel" id="output" aria-labelledby="output-title">
+              <div class="section-title">
+                <span>結果</span>
+                <strong id="totalFlux">0</strong>
+              </div>
+              <h2 id="output-title">A / B / C</h2>
+              <div id="phenotypeChart" class="phenotype-chart" aria-live="polite">
+                <div class="empty-state">Calculating</div>
+              </div>
+            </section>
+          </aside>
         </div>
 
         <div class="edge-hint" id="edgeHint" aria-live="polite">
@@ -182,19 +197,14 @@
         </div>
       </section>
 
-      <aside class="result-dock" aria-label="結果">
-        <section class="dock-section output-panel" id="output" aria-labelledby="output-title">
-          <div class="section-title">
-            <span>結果</span>
-            <strong id="totalFlux">0</strong>
-          </div>
-          <h2 id="output-title">A / B / C</h2>
-          <div id="phenotypeChart" class="phenotype-chart" aria-live="polite">
-            <div class="empty-state">Calculating</div>
-          </div>
-        </section>
-      </aside>
     </main>
+
+    <section class="research-note" aria-label="研究の展開">
+      <p>
+        実際の糖鎖ネットワークは、このデモよりはるかに大きく複雑です。
+        私たちは数理最適化とコンピュータを活用し、大規模な流れの解析を効率的かつ精密に行う手法を開発しています。
+      </p>
+    </section>
 
     <div class="feedback-toast" id="feedbackToast" role="status" aria-live="polite" hidden></div>
 
@@ -202,6 +212,6 @@
       <p class="noscript-message">このシミュレーターを使うには JavaScript を有効にしてください。</p>
     </noscript>
 
-    <script src="app.js?v=network-perf-v1"></script>
+    <script src="app.js?v=network-side-result-v1"></script>
   </body>
 </html>

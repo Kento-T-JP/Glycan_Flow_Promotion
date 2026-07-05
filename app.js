@@ -544,7 +544,7 @@ function knockoutSelectedEdge() {
 
 function resetSelectedEdge() {
   const link = linkById(state.selectedEdge);
-  setEdgeCapacity(state.selectedEdge, 100, { feedback: `${link.label}を標準に戻しました` });
+  setEdgeCapacity(state.selectedEdge, 100, { feedback: `${link.label}だけ標準値へ` });
 }
 
 function undoIntervention() {
@@ -552,7 +552,7 @@ function undoIntervention() {
   if (!previous) return;
   state.selectedEdge = previous.selectedEdge;
   state.edgeCapacities = { ...previous.edgeCapacities };
-  queueUpdate("Undo");
+  queueUpdate("直前の操作を取消");
 }
 
 function updateOutputs() {
@@ -666,6 +666,17 @@ function updateGame(result) {
     `;
     dom.gameTargets.append(row);
   });
+}
+
+function updateCountdownOnly() {
+  const countdownNumber = dom.gameCountdown.querySelector("strong");
+  const countdownText = dom.gameCountdown.querySelector("span");
+  countdownNumber.textContent = String(state.game.countdown);
+  countdownNumber.style.animation = "none";
+  countdownText.style.animation = "none";
+  void countdownNumber.offsetWidth;
+  countdownNumber.style.animation = "";
+  countdownText.style.animation = "";
 }
 
 function updateScores(result) {
@@ -782,7 +793,7 @@ function runCountdown() {
     return;
   }
   state.game.countdown -= 1;
-  queueUpdate();
+  updateCountdownOnly();
   gameCountdownTimerId = window.setTimeout(runCountdown, countdownStepMs);
 }
 

@@ -194,7 +194,7 @@ h2 {
   min-height: calc(100vh - 92px);
   margin: 0 auto;
   display: grid;
-  grid-template-columns: minmax(620px, 1fr) minmax(280px, 340px);
+  grid-template-columns: minmax(0, 1fr);
   gap: 12px;
   padding: 0 20px 20px;
 }
@@ -741,6 +741,13 @@ h2 {
   grid-template-rows: auto auto auto auto minmax(520px, 1fr) auto;
   gap: 12px;
   padding: 14px;
+}
+
+.network-row {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) minmax(280px, 340px);
+  gap: 12px;
+  align-items: stretch;
 }
 
 .stage-topline {
@@ -1350,6 +1357,23 @@ h2 {
   box-shadow: var(--shadow);
 }
 
+.research-note {
+  max-width: 940px;
+  margin: 4px auto 28px;
+  padding: 0 20px;
+}
+
+.research-note p {
+  margin: 0;
+  border-top: 1px solid var(--line);
+  padding-top: 18px;
+  color: var(--muted);
+  font-size: 0.92rem;
+  font-weight: 650;
+  line-height: 1.8;
+  text-align: center;
+}
+
 @keyframes streamFlow {
   to {
     stroke-dashoffset: -40;
@@ -1380,12 +1404,12 @@ h2 {
 }
 
 @media (max-width: 1220px) {
-  .simulator-grid {
+  .network-row {
     grid-template-columns: 1fr;
   }
 
   .result-dock {
-    grid-template-columns: minmax(260px, 320px) minmax(0, 1fr);
+    grid-template-columns: minmax(0, 1fr);
   }
 
   .model-bridge {
@@ -1411,29 +1435,7 @@ h2 {
 }
 
 @media (min-width: 1221px) {
-  .network-stage {
-    position: relative;
-    grid-template-rows: auto auto auto minmax(520px, 1fr) auto;
-  }
-
-  .network-wrap {
-    grid-row: 4;
-    grid-column: 1;
-  }
-
-  .edge-hint {
-    grid-row: 5;
-    grid-column: 1;
-  }
-
   .network-stage > .game-panel {
-    grid-row: 4;
-    grid-column: 1;
-    z-index: 6;
-    align-self: start;
-    justify-self: center;
-    width: min(920px, calc(100% - 32px));
-    margin-top: 14px;
     grid-template-columns: minmax(150px, 0.72fr) minmax(280px, 1.3fr) minmax(110px, 0.45fr) minmax(150px, 0.58fr);
     grid-template-areas:
       "head targets score actions"
@@ -1490,6 +1492,7 @@ h2 {
   }
 
   .simulator-grid,
+  .network-row,
   .result-dock,
   .edge-editor {
     grid-template-columns: 1fr;
@@ -1505,7 +1508,7 @@ h2 {
   }
 
   .network-stage {
-    grid-template-rows: auto auto auto auto auto;
+    grid-template-rows: auto auto auto auto auto auto;
   }
 
   .network-wrap,
