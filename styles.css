@@ -454,6 +454,18 @@ h2 {
   stroke-linecap: round;
 }
 
+.cell-body {
+  fill: url("#cellBodyGradient");
+  stroke: rgba(141, 230, 166, 0.18);
+  stroke-width: 2;
+}
+
+.cell-vesicle {
+  fill: rgba(100, 210, 255, 0.11);
+  stroke: rgba(212, 218, 223, 0.18);
+  stroke-width: 2;
+}
+
 .glycan-stem,
 .glycan-link {
   fill: none;
@@ -509,7 +521,7 @@ h2 {
   place-items: center;
   justify-self: center;
   width: 72px;
-  height: 40px;
+  height: 64px;
   color: var(--primary);
   font-size: 0.72rem;
   font-weight: 820;
@@ -523,17 +535,18 @@ h2 {
   position: absolute;
   left: 8px;
   right: 8px;
-  top: 50%;
+  top: 70%;
   height: 3px;
   border-radius: 999px;
   background: var(--primary);
+  box-shadow: 0 0 16px rgba(100, 210, 255, 0.28);
 }
 
 .bridge-arrow::after {
   content: "";
   position: absolute;
   right: 7px;
-  top: calc(50% - 6px);
+  top: calc(70% - 6px);
   width: 12px;
   height: 12px;
   border-top: 3px solid var(--primary);
@@ -544,9 +557,11 @@ h2 {
 .bridge-arrow span {
   position: relative;
   z-index: 1;
-  padding: 0 4px;
+  align-self: start;
+  padding: 0;
   color: var(--primary);
-  background: var(--panel);
+  background: transparent;
+  line-height: 1;
 }
 
 .mini-edge {
@@ -1053,7 +1068,28 @@ h2 {
   }
 
   .bridge-arrow {
-    transform: rotate(90deg);
+    width: 72px;
+    height: 78px;
+  }
+
+  .bridge-arrow::before {
+    top: 24px;
+    bottom: 9px;
+    left: calc(50% - 1.5px);
+    right: auto;
+    width: 3px;
+    height: auto;
+  }
+
+  .bridge-arrow::after {
+    top: auto;
+    right: auto;
+    bottom: 8px;
+    left: calc(50% - 6px);
+    border-top: 0;
+    border-right: 3px solid var(--primary);
+    border-bottom: 3px solid var(--primary);
+    transform: rotate(45deg);
   }
 
   .edge-actions {

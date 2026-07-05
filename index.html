@@ -44,6 +44,11 @@
         <section class="model-bridge" aria-label="糖鎖イメージからネットワークモデルへ">
           <svg class="bio-glycan" viewBox="0 0 360 180" role="img" aria-label="分岐した糖鎖のイメージ">
             <defs>
+              <radialGradient id="cellBodyGradient" cx="42%" cy="55%" r="64%">
+                <stop offset="0" stop-color="#8de6a6" stop-opacity="0.16" />
+                <stop offset="0.58" stop-color="#79a7ff" stop-opacity="0.09" />
+                <stop offset="1" stop-color="#15171a" stop-opacity="0" />
+              </radialGradient>
               <linearGradient id="membraneGradient" x1="0" x2="1">
                 <stop offset="0" stop-color="#79a7ff" stop-opacity="0.18" />
                 <stop offset="0.5" stop-color="#8de6a6" stop-opacity="0.25" />
@@ -57,6 +62,9 @@
                 </feMerge>
               </filter>
             </defs>
+            <ellipse class="cell-body" cx="164" cy="112" rx="148" ry="54" />
+            <circle class="cell-vesicle v1" cx="46" cy="94" r="10" />
+            <circle class="cell-vesicle v2" cx="308" cy="122" r="8" />
             <path class="cell-membrane" d="M18 120 C72 90 116 148 176 116 C231 86 284 124 342 98" />
             <path class="glycan-stem" d="M93 112 C94 90 102 74 119 62" />
             <path class="glycan-link main" d="M119 62 C142 58 154 54 174 44" />
@@ -77,7 +85,7 @@
               <polygon points="285,45 300,54 300,70 285,79 270,70 270,54" fill="#8de6a6" />
               <circle cx="247" cy="98" r="11" fill="#f3c34d" />
             </g>
-            <text class="visual-label" x="22" y="34">Biological glycan</text>
+            <text class="visual-label" x="22" y="34">Biological Network</text>
           </svg>
           <div class="bridge-copy">
             <strong>糖鎖の枝分かれを読む</strong>
@@ -94,7 +102,7 @@
             <circle class="mini-node upper" cx="246" cy="31" r="14" />
             <circle class="mini-node middle" cx="246" cy="92" r="14" />
             <circle class="mini-node lower" cx="246" cy="154" r="14" />
-            <text class="visual-label" x="28" y="34">Flow model</text>
+            <text class="visual-label" x="28" y="34">Flow Network model</text>
           </svg>
         </section>
 
