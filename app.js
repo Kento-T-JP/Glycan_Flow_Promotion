@@ -1,14 +1,14 @@
 const modules = [
-  { id: "input", label: "Start", name: "前駆糖鎖", x: 90, y: 325, color: "#79a7ff", shape: "diamond" },
-  { id: "core", label: "Trim", name: "切りそろえ後", x: 260, y: 325, color: "#59d7c5", shape: "circle" },
-  { id: "high", label: "A route", name: "A側ルート", x: 445, y: 175, color: "#f3c34d", shape: "circle" },
-  { id: "branch", label: "B route", name: "B側ルート", x: 445, y: 325, color: "#8de6a6", shape: "rect" },
-  { id: "stall", label: "Slow", name: "停滞側", x: 445, y: 475, color: "#ff7a71", shape: "circle" },
-  { id: "extend", label: "Extend", name: "伸長中", x: 635, y: 245, color: "#ee78bd", shape: "hex" },
-  { id: "finish", label: "C step", name: "Cへ向かう反応", x: 635, y: 405, color: "#bae75f", shape: "hex" },
-  { id: "stable", label: "A", name: "Product A", x: 865, y: 160, color: "#59d7c5", shape: "rect", terminal: "stable" },
-  { id: "adaptive", label: "B", name: "Product B", x: 865, y: 325, color: "#f3c34d", shape: "rect", terminal: "adaptive" },
-  { id: "stressOut", label: "C", name: "Product C", x: 865, y: 490, color: "#ff7a71", shape: "rect", terminal: "stress" },
+  { id: "input", label: "入口", name: "入口", x: 90, y: 325, color: "#79a7ff", shape: "diamond" },
+  { id: "core", label: "分岐前", name: "分岐前", x: 260, y: 325, color: "#59d7c5", shape: "circle" },
+  { id: "high", label: "上側", name: "上側", x: 445, y: 175, color: "#f3c34d", shape: "circle" },
+  { id: "branch", label: "中央", name: "中央", x: 445, y: 325, color: "#8de6a6", shape: "rect" },
+  { id: "stall", label: "下側", name: "下側", x: 445, y: 475, color: "#ff7a71", shape: "circle" },
+  { id: "extend", label: "上の中間", name: "上の中間", x: 635, y: 245, color: "#ee78bd", shape: "hex" },
+  { id: "finish", label: "下の中間", name: "下の中間", x: 635, y: 405, color: "#bae75f", shape: "hex" },
+  { id: "stable", label: "A", name: "結果A", x: 865, y: 160, color: "#59d7c5", shape: "rect", terminal: "stable" },
+  { id: "adaptive", label: "B", name: "結果B", x: 865, y: 325, color: "#f3c34d", shape: "rect", terminal: "adaptive" },
+  { id: "stressOut", label: "C", name: "結果C", x: 865, y: 490, color: "#ff7a71", shape: "rect", terminal: "stress" },
 ];
 
 const modelDefaults = {
@@ -17,47 +17,25 @@ const modelDefaults = {
 };
 
 const links = [
-  { id: "input_core", from: "input", to: "core", base: 120, mode: "supply", enzyme: "mannosidase", enzymeLabel: "MAN1/2", label: "切りそろえ", color: "#79a7ff" },
-  { id: "core_high", from: "core", to: "high", base: 46, mode: "escape", enzymeLabel: "MAN1/2", label: "Aへ", color: "#f3c34d" },
-  { id: "core_branch", from: "core", to: "branch", base: 74, mode: "enzyme", enzyme: "mgat", enzymeLabel: "MGAT", label: "Bへ", color: "#8de6a6" },
-  { id: "core_stall", from: "core", to: "stall", base: 34, mode: "stall", enzymeLabel: "MAN1/2", label: "停滞", color: "#ff7a71" },
-  { id: "high_branch", from: "high", to: "branch", base: 44, mode: "enzyme", enzyme: "mgat", enzymeLabel: "MGAT", label: "Bへ戻す", color: "#8de6a6" },
-  { id: "high_stable", from: "high", to: "stable", base: 42, mode: "escape", enzymeLabel: "MAN1/2", label: "A", color: "#59d7c5" },
-  { id: "branch_extend", from: "branch", to: "extend", base: 58, mode: "enzyme", enzyme: "galt", enzymeLabel: "GalT", label: "伸ばす", color: "#ee78bd" },
-  { id: "branch_finish", from: "branch", to: "finish", base: 38, mode: "enzyme", enzyme: "terminal", enzymeLabel: "ST/FUT", label: "Cへ", color: "#bae75f" },
-  { id: "stall_finish", from: "stall", to: "finish", base: 40, mode: "transit", enzymeLabel: "ST/FUT", label: "滞在", color: "#bae75f" },
-  { id: "extend_stable", from: "extend", to: "stable", base: 26, mode: "escape", enzymeLabel: "GalT", label: "A", color: "#59d7c5" },
-  { id: "extend_adaptive", from: "extend", to: "adaptive", base: 60, mode: "enzyme", enzyme: "galt", enzymeLabel: "GalT", label: "B", color: "#f3c34d" },
-  { id: "finish_adaptive", from: "finish", to: "adaptive", base: 36, mode: "enzyme", enzyme: "terminal", enzymeLabel: "ST/FUT", label: "途中型", color: "#f3c34d" },
-  { id: "finish_stress", from: "finish", to: "stressOut", base: 58, mode: "enzyme", enzyme: "terminal", enzymeLabel: "ST/FUT", label: "C", color: "#ff7a71" },
+  { id: "input_core", from: "input", to: "core", base: 120, mode: "supply", enzyme: "mannosidase", label: "E1", action: "入口を通す", color: "#79a7ff" },
+  { id: "core_high", from: "core", to: "high", base: 46, mode: "escape", label: "E2", action: "上側へ分ける", color: "#f3c34d" },
+  { id: "core_branch", from: "core", to: "branch", base: 74, mode: "enzyme", enzyme: "mgat", label: "E3", action: "中央へ分ける", color: "#8de6a6" },
+  { id: "core_stall", from: "core", to: "stall", base: 34, mode: "stall", label: "E4", action: "下側へ分ける", color: "#ff7a71" },
+  { id: "high_branch", from: "high", to: "branch", base: 44, mode: "enzyme", enzyme: "mgat", label: "E5", action: "上側から中央へ戻す", color: "#8de6a6" },
+  { id: "high_stable", from: "high", to: "stable", base: 42, mode: "escape", label: "E6", action: "上側からAを作る", color: "#59d7c5" },
+  { id: "branch_extend", from: "branch", to: "extend", base: 58, mode: "enzyme", enzyme: "galt", label: "E7", action: "上の中間へ進める", color: "#ee78bd" },
+  { id: "branch_finish", from: "branch", to: "finish", base: 38, mode: "enzyme", enzyme: "terminal", label: "E8", action: "下の中間へ進める", color: "#bae75f" },
+  { id: "stall_finish", from: "stall", to: "finish", base: 40, mode: "transit", label: "E9", action: "下側から下の中間へ進める", color: "#bae75f" },
+  { id: "extend_stable", from: "extend", to: "stable", base: 26, mode: "escape", label: "E10", action: "上の中間からAを作る", color: "#59d7c5" },
+  { id: "extend_adaptive", from: "extend", to: "adaptive", base: 60, mode: "enzyme", enzyme: "galt", label: "E11", action: "上の中間からBを作る", color: "#f3c34d" },
+  { id: "finish_adaptive", from: "finish", to: "adaptive", base: 36, mode: "enzyme", enzyme: "terminal", label: "E12", action: "下の中間からBを作る", color: "#f3c34d" },
+  { id: "finish_stress", from: "finish", to: "stressOut", base: 58, mode: "enzyme", enzyme: "terminal", label: "E13", action: "Cを作る", color: "#ff7a71" },
 ];
 
 const phenotypeLabels = {
-  stable: { label: "A", sub: "Product A", color: "#59d7c5" },
-  adaptive: { label: "B", sub: "Product B", color: "#f3c34d" },
-  stress: { label: "C", sub: "Product C", color: "#ff7a71" },
-};
-
-const enzymeNames = {
-  mannosidase: "Mannosidase",
-  mgat: "MGAT",
-  galt: "GalT",
-  terminal: "ST/FUT",
-};
-
-const targetPlans = {
-  stable: [
-    { label: "B側へ流す", changes: { core_branch: 165, high_branch: 155 } },
-    { label: "A出口を絞る", changes: { high_stable: 35, extend_stable: 45 } },
-  ],
-  adaptive: [
-    { label: "B出口を絞る", changes: { extend_adaptive: 35, finish_adaptive: 45 } },
-    { label: "C側へ送る", changes: { branch_finish: 155, finish_stress: 155 } },
-  ],
-  stress: [
-    { label: "C出口を止める", changes: { finish_stress: 0 } },
-    { label: "Cへ入る流れを絞る", changes: { branch_finish: 45, stall_finish: 45 } },
-  ],
+  stable: { label: "A", sub: "結果A", color: "#59d7c5" },
+  adaptive: { label: "B", sub: "結果B", color: "#f3c34d" },
+  stress: { label: "C", sub: "結果C", color: "#ff7a71" },
 };
 
 const nodeOrder = ["input", "core", "high", "branch", "stall", "extend", "finish"];
@@ -65,7 +43,6 @@ const terminalOrder = ["stable", "adaptive", "stress"];
 
 const state = {
   selectedEdge: "core_branch",
-  target: "stable",
   edgeCapacities: {},
   history: [],
   frame: 0,
@@ -73,7 +50,6 @@ const state = {
 };
 
 const dom = {
-  targetButtons: [...document.querySelectorAll(".target-button")],
   edgeCapacityInput: document.querySelector("#edgeCapacityInput"),
   edgeCapacityOutput: document.querySelector("#edgeCapacityOutput"),
   edgeTitle: document.querySelector("#edge-editor-title"),
@@ -87,7 +63,6 @@ const dom = {
   networkSvg: document.querySelector("#networkSvg"),
   networkLoading: document.querySelector("#networkLoading"),
   phenotypeChart: document.querySelector("#phenotypeChart"),
-  recommendationList: document.querySelector("#recommendationList"),
   totalFlux: document.querySelector("#totalFlux"),
   insightText: document.querySelector("#insightText"),
   resetButton: document.querySelector("#resetButton"),
@@ -108,7 +83,6 @@ const requiredElements = [
   dom.selectedEdgeDelta,
   dom.networkSvg,
   dom.phenotypeChart,
-  dom.recommendationList,
   dom.totalFlux,
   dom.insightText,
   dom.resetButton,
@@ -329,9 +303,9 @@ function drawNetwork(result, baseline) {
     group.setAttribute("class", ["bio-edge", selected ? "selected" : "", stopped ? "stopped" : "", delta > 4 ? "increased" : "", delta < -4 ? "decreased" : ""].join(" "));
     group.setAttribute("tabindex", "0");
     group.setAttribute("role", "button");
-    group.setAttribute("aria-label", `${link.label}。${link.enzymeLabel}のCapacity ${edgeCapacity(link.id)}。Flow ${amount.toFixed(0)}。クリックで選択。`);
+    group.setAttribute("aria-label", `${link.label} ${link.action}。流量 ${amount.toFixed(0)}。クリックで選択。`);
     group.dataset.edge = link.id;
-    title.textContent = `${link.label}: ${link.enzymeLabel} Capacity ${edgeCapacity(link.id)} / Flow ${amount.toFixed(1)}`;
+    title.textContent = `${link.label}: ${link.action} / 流量 ${amount.toFixed(1)}`;
 
     shadow.setAttribute("d", path);
     shadow.setAttribute("class", "edge-shadow");
@@ -354,7 +328,7 @@ function drawNetwork(result, baseline) {
     cap.setAttribute("class", "edge-capacity");
     cap.textContent = amount.toFixed(0);
 
-    group.append(title, shadow, base, flow, hit, label, cap);
+    group.append(title, shadow, base, flow);
 
     const particleCount = reduceMotion || stopped ? 0 : amount > 70 ? 4 : amount > 34 ? 3 : amount > 10 ? 2 : 1;
     for (let i = 0; i < particleCount; i += 1) {
@@ -371,6 +345,8 @@ function drawNetwork(result, baseline) {
       particle.append(animate);
       group.append(particle);
     }
+
+    group.append(hit, label, cap);
 
     group.addEventListener("click", () => selectEdge(link.id));
     group.addEventListener("keydown", (event) => {
@@ -403,7 +379,6 @@ function drawNetwork(result, baseline) {
 function pushHistory() {
   state.history.push({
     selectedEdge: state.selectedEdge,
-    target: state.target,
     edgeCapacities: { ...state.edgeCapacities },
   });
   if (state.history.length > 30) state.history.shift();
@@ -424,7 +399,7 @@ function setEdgeCapacity(id, nextValue, options = {}) {
 
 function adjustSelectedEdge(delta) {
   const current = edgeCapacity(state.selectedEdge);
-  setEdgeCapacity(state.selectedEdge, current + delta, { feedback: delta > 0 ? "Capacityを上げました" : "Capacityを下げました" });
+  setEdgeCapacity(state.selectedEdge, current + delta, { feedback: delta > 0 ? "通しやすくしました" : "通りにくくしました" });
 }
 
 function knockoutSelectedEdge() {
@@ -441,7 +416,6 @@ function undoIntervention() {
   const previous = state.history.pop();
   if (!previous) return;
   state.selectedEdge = previous.selectedEdge;
-  state.target = previous.target;
   state.edgeCapacities = { ...previous.edgeCapacities };
   queueUpdate("Undo");
 }
@@ -452,24 +426,14 @@ function updateOutputs() {
   dom.edgeCapacityOutput.textContent = String(edgeCapacity(state.selectedEdge));
 }
 
-function updatePresetButtons() {
-  dom.targetButtons.forEach((button) => {
-    const active = button.dataset.target === state.target;
-    button.classList.toggle("active", active);
-    button.setAttribute("aria-pressed", String(active));
-  });
-}
-
 function updateEdgeEditor(result, baseline) {
   const link = linkById(state.selectedEdge);
   const flow = result.flows.get(link.id) ?? 0;
   const baselineFlow = baseline.flows.get(link.id) ?? 0;
   const delta = flow - baselineFlow;
-  const cap = edgeCapacity(link.id);
-  const reaction = link.enzyme ? enzymeNames[link.enzyme] : link.enzymeLabel;
 
-  dom.edgeTitle.textContent = link.label;
-  dom.edgeMeta.textContent = `${reaction} / ${nodeById(link.from).name} → ${nodeById(link.to).name} / ${cap}`;
+  dom.edgeTitle.textContent = `${link.label} ${link.action}`;
+  dom.edgeMeta.textContent = `${nodeById(link.from).name} → ${nodeById(link.to).name}`;
   dom.selectedEdgeFlow.textContent = flow.toFixed(0);
   dom.selectedEdgeDelta.textContent = `${delta >= 0 ? "+" : ""}${delta.toFixed(0)}`;
   dom.selectedEdgeDelta.className = delta > 3 ? "positive" : delta < -3 ? "negative" : "";
@@ -477,7 +441,7 @@ function updateEdgeEditor(result, baseline) {
 
 function updateChart(result, baseline) {
   if (result.total < 1) {
-    dom.phenotypeChart.innerHTML = `<div class="empty-state">Flow = 0</div>`;
+    dom.phenotypeChart.innerHTML = `<div class="empty-state">流量 = 0</div>`;
     return;
   }
 
@@ -510,38 +474,6 @@ function updateScores(result) {
   dom.insightText.textContent = `${phenotypeLabels[dominant].label}が最大。バーを動かすと線の太さとA/B/Cが変わります。`;
 }
 
-function applyChangesToModel(changes, model) {
-  return {
-    ...model,
-    edgeCapacities: {
-      ...model.edgeCapacities,
-      ...changes,
-    },
-  };
-}
-
-function updateRecommendations(result) {
-  const plans = targetPlans[state.target] ?? [];
-  const currentModel = getCurrentModel();
-  const currentPercent = Math.round((result.phenotypes[state.target] / Math.max(result.total, 1)) * 100);
-  dom.recommendationList.innerHTML = "";
-
-  plans.forEach((plan, index) => {
-    const predicted = calculateModel(applyChangesToModel(plan.changes, currentModel));
-    const nextPercent = Math.round((predicted.phenotypes[state.target] / Math.max(predicted.total, 1)) * 100);
-    const delta = nextPercent - currentPercent;
-    const button = document.createElement("button");
-    button.className = "recommendation-card";
-    button.type = "button";
-    button.dataset.recommendation = String(index);
-    button.innerHTML = `
-      <span>${plan.label}</span>
-      <strong>${phenotypeLabels[state.target].label} ${delta >= 0 ? "+" : ""}${delta}%</strong>
-    `;
-    dom.recommendationList.append(button);
-  });
-}
-
 function updateButtons() {
   dom.undoButton.disabled = state.history.length === 0;
 }
@@ -560,12 +492,10 @@ function update(feedback) {
   const baseline = calculateModel(getBaselineModel());
   const result = calculateModel(getCurrentModel());
   updateOutputs();
-  updatePresetButtons();
   drawNetwork(result, baseline);
   updateEdgeEditor(result, baseline);
   updateChart(result, baseline);
   updateScores(result);
-  updateRecommendations(result);
   updateButtons();
   dom.networkLoading?.classList.add("hidden");
   showFeedback(feedback);
@@ -610,29 +540,12 @@ function queueUpdate(feedback) {
 function resetAll() {
   pushHistory();
   state.selectedEdge = "core_branch";
-  state.target = "stable";
   state.history = [];
   state.edgeCapacities = defaultCapacities();
   queueUpdate("Reset");
 }
 
-function applyRecommendation(index) {
-  const plan = targetPlans[state.target]?.[index];
-  if (!plan) return;
-  pushHistory();
-  Object.assign(state.edgeCapacities, plan.changes);
-  state.selectedEdge = Object.keys(plan.changes)[0] || state.selectedEdge;
-  queueUpdate(plan.label);
-}
-
 function bindEvents() {
-  dom.targetButtons.forEach((button) => {
-    button.addEventListener("click", () => {
-      state.target = button.dataset.target;
-      queueUpdate();
-    });
-  });
-
   dom.edgeCapacityInput.addEventListener("pointerdown", () => {
     if (!sliderPrimed) {
       pushHistory();
@@ -652,12 +565,6 @@ function bindEvents() {
   dom.edgeResetButton.addEventListener("click", resetSelectedEdge);
   dom.resetButton.addEventListener("click", resetAll);
   dom.undoButton.addEventListener("click", undoIntervention);
-
-  dom.recommendationList.addEventListener("click", (event) => {
-    const button = event.target.closest("[data-recommendation]");
-    if (!button) return;
-    applyRecommendation(Number(button.dataset.recommendation));
-  });
 }
 
 function init() {

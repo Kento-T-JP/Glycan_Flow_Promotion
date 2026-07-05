@@ -6,7 +6,7 @@
     <title>Glycan Pathway Simulator</title>
     <meta
       name="description"
-      content="糖鎖生合成ネットワークのEdge Capacityを直接操作し、Flowと最終糖鎖分布の変化を観察する静的Webアプリケーション"
+      content="糖鎖の流れを直接操作し、最終的なA/B/Cの分布変化を観察する静的Webアプリケーション"
     />
     <link rel="stylesheet" href="styles.css" />
   </head>
@@ -73,31 +73,17 @@
           <div class="state-overlay" id="networkLoading">Loading</div>
           <svg id="networkSvg" class="network-svg" viewBox="0 0 1040 650" role="img" aria-labelledby="networkTitle networkDesc">
             <title id="networkTitle">糖鎖生合成ネットワーク</title>
-            <desc id="networkDesc">Edgeを選択してCapacityを変更すると、Flowと最終糖鎖分布が変化します。</desc>
+            <desc id="networkDesc">線を選択して通しやすさを変更すると、流量と最終分布が変化します。</desc>
           </svg>
         </div>
 
         <div class="edge-hint" id="edgeHint" aria-live="polite">
           <span>次の操作</span>
-          <strong id="insightText">Capacityを変えると下流のFlowが再配分されます。</strong>
+          <strong id="insightText">通しやすさを変えると下流の流量が再配分されます。</strong>
         </div>
       </section>
 
       <aside class="result-dock" aria-label="結果">
-        <section class="dock-section target-panel">
-          <div class="section-title">
-            <span>目的</span>
-            <strong>減らす</strong>
-          </div>
-          <h2 class="target-title">減らしたい結果</h2>
-          <div class="target-buttons" role="group" aria-label="減らしたい結果">
-            <button class="target-button active" data-target="stable" type="button" aria-pressed="true">A</button>
-            <button class="target-button" data-target="adaptive" type="button" aria-pressed="false">B</button>
-            <button class="target-button" data-target="stress" type="button" aria-pressed="false">C</button>
-          </div>
-          <div class="recommendation" id="recommendationList" aria-live="polite"></div>
-        </section>
-
         <section class="dock-section output-panel" id="output" aria-labelledby="output-title">
           <div class="section-title">
             <span>結果</span>

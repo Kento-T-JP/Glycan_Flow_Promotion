@@ -227,17 +227,9 @@ h2 {
   font-weight: 700;
 }
 
-.target-buttons {
-  display: grid;
-  grid-template-columns: repeat(3, minmax(0, 1fr));
-  gap: 8px;
-}
-
-.target-button,
 .secondary-action,
 .danger-action,
-.icon-action,
-.recommendation-card {
+.icon-action {
   border: 1px solid var(--line);
   border-radius: var(--radius);
   cursor: pointer;
@@ -248,27 +240,10 @@ h2 {
     transform 150ms ease;
 }
 
-.target-button:hover,
 .secondary-action:hover:not(:disabled),
 .danger-action:hover,
-.icon-action:hover,
-.recommendation-card:hover {
+.icon-action:hover {
   transform: translateY(-1px);
-}
-
-.target-button {
-  min-height: 42px;
-  padding: 0 10px;
-  color: var(--soft);
-  background: var(--panel-soft);
-  font-size: 0.82rem;
-  font-weight: 700;
-}
-
-.target-button.active {
-  border-color: transparent;
-  color: #06120f;
-  background: var(--primary);
 }
 
 .edge-editor h2 {
@@ -561,9 +536,9 @@ h2 {
 }
 
 .edge-capacity {
-  fill: var(--muted);
-  font-size: 11px;
-  font-weight: 720;
+  fill: var(--text);
+  font-size: 12px;
+  font-weight: 820;
 }
 
 .particle {
@@ -620,45 +595,6 @@ h2 {
   font-size: 0.9rem;
   font-weight: 700;
   text-align: right;
-}
-
-.target-panel {
-  display: grid;
-  gap: 12px;
-}
-
-.target-title {
-  color: var(--text);
-  font-size: 1.1rem;
-  font-weight: 760;
-}
-
-.recommendation {
-  display: grid;
-  gap: 8px;
-}
-
-.recommendation-card {
-  display: flex;
-  justify-content: space-between;
-  gap: 12px;
-  align-items: center;
-  min-height: 50px;
-  padding: 10px;
-  text-align: left;
-  background: var(--panel-soft);
-}
-
-.recommendation-card span {
-  color: var(--soft);
-  font-size: 0.84rem;
-  font-weight: 700;
-}
-
-.recommendation-card strong {
-  color: var(--warning);
-  font-size: 0.86rem;
-  white-space: nowrap;
 }
 
 .output-panel h2 {
@@ -873,10 +809,6 @@ h2 {
   .dock-section,
   .network-stage {
     padding: 12px;
-  }
-
-  .target-buttons {
-    grid-template-columns: 1fr;
   }
 
   .quick-guide {
