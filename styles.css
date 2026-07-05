@@ -925,6 +925,7 @@ h2 {
   color: var(--primary);
   background: transparent;
   line-height: 1;
+  white-space: nowrap;
   text-shadow: 0 0 18px rgba(100, 210, 255, 0.34);
 }
 
@@ -1063,6 +1064,73 @@ h2 {
   stroke-width: 1;
 }
 
+.network-legend {
+  position: absolute;
+  left: 14px;
+  top: 14px;
+  z-index: 3;
+  display: grid;
+  gap: 7px;
+  min-width: 178px;
+  border: 1px solid rgba(203, 217, 211, 0.22);
+  border-radius: var(--radius);
+  padding: 10px 12px;
+  color: var(--soft);
+  background: rgba(15, 18, 21, 0.84);
+  pointer-events: none;
+}
+
+.legend-title {
+  color: var(--primary);
+  font-size: 0.72rem;
+  font-weight: 850;
+  letter-spacing: 0.08em;
+}
+
+.legend-item {
+  display: grid;
+  grid-template-columns: 30px minmax(0, 1fr);
+  gap: 9px;
+  align-items: center;
+  font-size: 0.76rem;
+  font-weight: 700;
+  line-height: 1.2;
+}
+
+.legend-line {
+  display: block;
+  height: 5px;
+  border-radius: 999px;
+}
+
+.legend-line.flow {
+  background: var(--primary);
+  box-shadow: 0 0 10px rgba(100, 210, 255, 0.28);
+}
+
+.legend-line.stopped {
+  height: 4px;
+  background: repeating-linear-gradient(90deg, var(--line-strong) 0 5px, transparent 5px 9px);
+}
+
+.legend-node {
+  width: 15px;
+  height: 15px;
+  justify-self: center;
+  border: 2px solid rgba(255, 255, 255, 0.86);
+  border-radius: 999px;
+  background: var(--success);
+}
+
+.legend-terminal {
+  width: 22px;
+  height: 15px;
+  justify-self: center;
+  border: 2px solid rgba(255, 255, 255, 0.9);
+  border-radius: 5px;
+  background: var(--warning);
+}
+
 .bio-edge {
   cursor: pointer;
 }
@@ -1195,7 +1263,7 @@ h2 {
 
 .edge-hint {
   display: flex;
-  justify-content: space-between;
+  justify-content: flex-start;
   gap: 14px;
   align-items: center;
   min-height: 52px;
@@ -1214,7 +1282,7 @@ h2 {
   color: var(--soft);
   font-size: 0.9rem;
   font-weight: 700;
-  text-align: right;
+  text-align: left;
 }
 
 .output-panel h2 {

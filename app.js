@@ -1,5 +1,5 @@
 const modules = [
-  { id: "input", label: "入口", name: "入口", x: 90, y: 325, color: "#79a7ff", shape: "diamond" },
+  { id: "input", label: "出発点", name: "出発点", x: 90, y: 325, color: "#79a7ff", shape: "diamond" },
   { id: "core", label: "分岐前", name: "分岐前", x: 260, y: 325, color: "#59d7c5", shape: "circle" },
   { id: "high", label: "上側", name: "上側", x: 445, y: 175, color: "#f3c34d", shape: "circle" },
   { id: "branch", label: "中央", name: "中央", x: 445, y: 325, color: "#8de6a6", shape: "rect" },
@@ -17,7 +17,7 @@ const modelDefaults = {
 };
 
 const links = [
-  { id: "input_core", from: "input", to: "core", base: 120, mode: "supply", label: "E1", action: "入口を通す", color: "#79a7ff" },
+  { id: "input_core", from: "input", to: "core", base: 120, mode: "supply", label: "E1", action: "出発点から流す", color: "#79a7ff" },
   { id: "core_high", from: "core", to: "high", base: 46, mode: "escape", label: "E2", action: "上側へ分ける", color: "#f3c34d" },
   { id: "core_branch", from: "core", to: "branch", base: 74, mode: "enzyme", enzyme: "mgat", label: "E3", action: "中央へ分ける", color: "#8de6a6" },
   { id: "core_stall", from: "core", to: "stall", base: 34, mode: "stall", label: "E4", action: "下側へ分ける", color: "#ff7a71" },

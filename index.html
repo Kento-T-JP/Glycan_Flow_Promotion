@@ -8,7 +8,7 @@
       name="description"
       content="糖鎖の流れを直接操作し、最終的な糖鎖A/B/Cの分布変化を観察する静的Webアプリケーション"
     />
-    <link rel="stylesheet" href="styles.css?v=wording-polish-v1" />
+    <link rel="stylesheet" href="styles.css?v=network-legend-v3" />
   </head>
   <body>
     <a class="skip-link" href="#networkSvg">ネットワークへ移動</a>
@@ -171,6 +171,13 @@
         <div class="network-row">
           <div class="network-wrap">
             <div class="state-overlay" id="networkLoading">Loading</div>
+            <div class="network-legend" aria-label="ネットワークの凡例">
+              <span class="legend-title">凡例</span>
+              <span class="legend-item"><i class="legend-line flow" aria-hidden="true"></i>流量が多い</span>
+              <span class="legend-item"><i class="legend-line stopped" aria-hidden="true"></i>停止</span>
+              <span class="legend-item"><i class="legend-node" aria-hidden="true"></i>途中の糖鎖</span>
+              <span class="legend-item"><i class="legend-terminal" aria-hidden="true"></i>最終生成物</span>
+            </div>
             <svg id="networkSvg" class="network-svg" viewBox="0 0 1040 650" role="img" aria-labelledby="networkTitle networkDesc">
               <title id="networkTitle">糖鎖生合成ネットワーク</title>
               <desc id="networkDesc">線を選択して通しやすさを変更すると、流量と最終分布が変化します。</desc>
@@ -201,11 +208,11 @@
     </main>
 
     <section class="research-note" aria-label="研究の展開">
-      <span>Beyond this demo</span>
-      <h2>大規模な糖鎖ネットワークへ</h2>
+      <span>研究紹介</span>
+      <h2>数理最適化で糖鎖ネットワークを解析する</h2>
       <p>
-        実際の糖鎖ネットワークは、このデモよりはるかに大きく複雑です。
-        私たちは数理最適化とコンピュータを活用し、大規模な流れの解析を効率的かつ精密に行う手法を開発しています。
+        実際の糖鎖ネットワークは、このデモよりはるかに大きく複雑で、手作業で条件を探すことは現実的ではありません。
+        私たちは数理最適化とコンピュータを活用し、実験前に条件をシミュレーションすることで、仮説検証を速め、糖鎖変化のメカニズム解明や治療研究の加速に貢献する手法を開発しています。
       </p>
     </section>
 
@@ -215,6 +222,6 @@
       <p class="noscript-message">このシミュレーターを使うには JavaScript を有効にしてください。</p>
     </noscript>
 
-    <script src="app.js?v=perf-polish-v1"></script>
+    <script src="app.js?v=network-legend-v3"></script>
   </body>
 </html>
