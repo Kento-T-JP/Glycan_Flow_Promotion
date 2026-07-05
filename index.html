@@ -15,85 +15,22 @@
 
     <header class="topbar">
       <div>
-        <p class="eyebrow">Glycan Flow Promotion</p>
-        <h1>Edgeを触って、糖鎖の流れを変える</h1>
+        <p class="eyebrow">Interactive Simulator</p>
+        <h1>線を選んで、流れを変える</h1>
       </div>
       <div class="quick-guide" aria-label="基本操作">
-        <span>Edgeを選ぶ</span>
-        <span>Capacity</span>
-        <span>Flow</span>
-        <span>Distribution</span>
+        <span>1. 線を選ぶ</span>
+        <span>2. バーを動かす</span>
+        <span>3. A/B/Cを見る</span>
       </div>
     </header>
 
     <main class="simulator-grid" id="simulator">
-      <aside class="control-dock" aria-label="介入">
-        <section class="dock-section compact">
-          <div class="section-title">
-            <span>Condition</span>
-            <strong id="systemState">標準</strong>
-          </div>
-          <div class="preset-strip" role="group" aria-label="条件プリセット">
-            <button class="preset active" data-preset="balanced" type="button" aria-pressed="true">Standard</button>
-            <button class="preset" data-preset="stress" type="button" aria-pressed="false">Long stay</button>
-            <button class="preset" data-preset="inhibited" type="button" aria-pressed="false">Low branch</button>
-            <button class="preset" data-preset="growth" type="button" aria-pressed="false">High sugar</button>
-          </div>
-        </section>
-
-        <section class="dock-section edge-editor" aria-labelledby="edge-editor-title">
-          <div class="section-title">
-            <span>選択中の反応</span>
-            <strong id="edgeStatus">Capacity 100</strong>
-          </div>
-          <h2 id="edge-editor-title">Edgeを選択</h2>
-          <p id="edgeMeta">ネットワーク上の太い線をクリック</p>
-
-          <label class="capacity-slider" for="edgeCapacityInput">
-            <span>Capacity</span>
-            <output id="edgeCapacityOutput" for="edgeCapacityInput">100</output>
-            <input id="edgeCapacityInput" type="range" min="0" max="200" value="100" />
-          </label>
-
-          <div class="edge-actions" aria-label="Edge Capacity操作">
-            <button id="edgeKoButton" class="danger-action" type="button">停止</button>
-            <button id="edgeMinusButton" class="icon-action" type="button" aria-label="Capacityを下げる">-</button>
-            <button id="edgePlusButton" class="icon-action" type="button" aria-label="Capacityを上げる">+</button>
-            <button id="edgeResetButton" class="secondary-action" type="button">Reset</button>
-          </div>
-
-          <div class="edge-readout" aria-live="polite">
-            <span>Flow</span>
-            <strong id="selectedEdgeFlow">0</strong>
-            <span>Delta</span>
-            <strong id="selectedEdgeDelta">0</strong>
-          </div>
-        </section>
-
-        <section class="dock-section compact" aria-label="全体条件">
-          <label class="mini-slider" for="nutrientInput">
-            <span>Sugar pool</span>
-            <output id="nutrientOutput" for="nutrientInput">96</output>
-            <input id="nutrientInput" type="range" min="20" max="160" value="96" />
-          </label>
-          <label class="mini-slider" for="stressInput">
-            <span>Golgi stay</span>
-            <output id="stressOutput" for="stressInput">70</output>
-            <input id="stressInput" type="range" min="0" max="140" value="70" />
-          </label>
-          <div class="dock-actions">
-            <button class="secondary-action" id="pulseButton" type="button">Sugar pulse</button>
-            <button class="secondary-action" id="undoButton" type="button" disabled>Undo</button>
-            <button class="secondary-action" id="resetButton" type="button">Reset all</button>
-          </div>
-        </section>
-      </aside>
-
       <section class="network-stage" aria-labelledby="network-heading">
         <div class="stage-topline">
           <div>
-            <p class="eyebrow">Interactive Biosynthesis Network</p>
-            <h2 id="network-heading">Node = state / Edge = reaction / Width = flow</h2>
+            <p class="eyebrow">Network</p>
+            <h2 id="network-heading">太い線ほど、たくさん流れています</h2>
           </div>
           <div class="flow-legend" aria-label="Flow legend">
             <span><i class="line active"></i>太いほど多い</span>
@@ -101,6 +38,36 @@
             <span><i class="dot selected"></i>選択中</span>
           </div>
         </div>
+
+        <section class="edge-editor" aria-labelledby="edge-editor-title">
+          <div class="edge-summary">
+            <span>選択中の線</span>
+            <h2 id="edge-editor-title">線を選択</h2>
+            <p id="edgeMeta">ネットワーク上の線をクリック</p>
+          </div>
+
+          <label class="capacity-slider" for="edgeCapacityInput">
+            <span>通しやすさ</span>
+            <output id="edgeCapacityOutput" for="edgeCapacityInput" aria-hidden="true"></output>
+            <input id="edgeCapacityInput" type="range" min="0" max="200" value="100" />
+          </label>
+
+          <div class="edge-actions" aria-label="流れやすさ操作">
+            <button id="edgeKoButton" class="danger-action" type="button">停止</button>
+            <button id="edgeMinusButton" class="icon-action" type="button" aria-label="流れやすさを下げる">-</button>
+            <button id="edgePlusButton" class="icon-action" type="button" aria-label="流れやすさを上げる">+</button>
+            <button id="edgeResetButton" class="secondary-action" type="button">戻す</button>
+            <button class="secondary-action" id="undoButton" type="button" disabled>Undo</button>
+            <button class="secondary-action" id="resetButton" type="button">全て戻す</button>
+          </div>
+
+          <div class="edge-readout" aria-live="polite">
+            <span>流量</span>
+            <strong id="selectedEdgeFlow">0</strong>
+            <span>差分</span>
+            <strong id="selectedEdgeDelta">0</strong>
+          </div>
+        </section>
 
         <div class="network-wrap">
           <div class="state-overlay" id="networkLoading">Loading</div>
@@ -111,7 +78,7 @@
         </div>
 
         <div class="edge-hint" id="edgeHint" aria-live="polite">
-          <span>Click any edge</span>
+          <span>次の操作</span>
           <strong id="insightText">Capacityを変えると下流のFlowが再配分されます。</strong>
         </div>
       </section>
@@ -119,7 +86,7 @@
       <aside class="result-dock" aria-label="結果">
         <section class="dock-section target-panel">
           <div class="section-title">
-            <span>目的設定</span>
+            <span>目的</span>
             <strong>減らす</strong>
           </div>
           <h2 class="target-title">減らしたい結果</h2>
@@ -133,10 +100,10 @@
 
         <section class="dock-section output-panel" id="output" aria-labelledby="output-title">
           <div class="section-title">
-            <span>Terminal Distribution</span>
+            <span>結果</span>
             <strong id="totalFlux">0</strong>
           </div>
-          <h2 id="output-title">Baseline → Current</h2>
+          <h2 id="output-title">A / B / C</h2>
           <div id="phenotypeChart" class="phenotype-chart" aria-live="polite">
             <div class="empty-state">Calculating</div>
           </div>

@@ -149,12 +149,11 @@ h2 {
   min-height: calc(100vh - 92px);
   margin: 0 auto;
   display: grid;
-  grid-template-columns: minmax(230px, 260px) minmax(620px, 1fr) minmax(260px, 300px);
+  grid-template-columns: minmax(620px, 1fr) minmax(280px, 340px);
   gap: 12px;
   padding: 0 20px 20px;
 }
 
-.control-dock,
 .result-dock {
   display: grid;
   gap: 12px;
@@ -199,14 +198,12 @@ h2 {
   font-weight: 700;
 }
 
-.preset-strip,
 .target-buttons {
   display: grid;
-  grid-template-columns: repeat(2, minmax(0, 1fr));
+  grid-template-columns: repeat(3, minmax(0, 1fr));
   gap: 8px;
 }
 
-.preset,
 .target-button,
 .secondary-action,
 .danger-action,
@@ -222,7 +219,6 @@ h2 {
     transform 150ms ease;
 }
 
-.preset:hover,
 .target-button:hover,
 .secondary-action:hover:not(:disabled),
 .danger-action:hover,
@@ -231,7 +227,6 @@ h2 {
   transform: translateY(-1px);
 }
 
-.preset,
 .target-button {
   min-height: 42px;
   padding: 0 10px;
@@ -241,7 +236,6 @@ h2 {
   font-weight: 700;
 }
 
-.preset.active,
 .target-button.active {
   border-color: transparent;
   color: #06120f;
@@ -255,59 +249,58 @@ h2 {
 }
 
 .edge-editor p {
-  min-height: 42px;
-  margin-bottom: 14px;
+  margin-bottom: 0;
   color: var(--muted);
   font-size: 0.86rem;
   line-height: 1.45;
 }
 
-#edgeStatus.is-ko {
-  color: var(--danger);
-}
-
-#edgeStatus.is-high {
-  color: var(--success);
-}
-
-#edgeStatus.is-low {
-  color: var(--warning);
-}
-
-.capacity-slider,
-.mini-slider {
+.edge-editor {
   display: grid;
-  grid-template-columns: minmax(0, 1fr) 48px;
+  grid-template-columns: minmax(180px, 1fr) minmax(220px, 1.4fr) auto minmax(110px, 0.5fr);
+  gap: 12px;
+  align-items: center;
+  padding: 12px;
+  border: 1px solid var(--line);
+  border-radius: var(--radius);
+  background: var(--panel-soft);
+}
+
+.edge-summary span {
+  display: block;
+  margin-bottom: 4px;
+  color: var(--muted);
+  font-size: 0.72rem;
+  font-weight: 800;
+  text-transform: uppercase;
+}
+
+.capacity-slider {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr);
   gap: 8px;
   align-items: center;
 }
 
-.capacity-slider span,
-.mini-slider span {
+.capacity-slider span {
   color: var(--soft);
   font-size: 0.82rem;
   font-weight: 700;
 }
 
-.capacity-slider output,
-.mini-slider output {
-  color: var(--warning);
-  font-weight: 760;
-  text-align: right;
+.capacity-slider output {
+  display: none;
 }
 
-.capacity-slider input,
-.mini-slider input {
-  grid-column: 1 / -1;
+.capacity-slider input {
   width: 100%;
   accent-color: var(--primary);
 }
 
 .edge-actions {
   display: grid;
-  grid-template-columns: 1.1fr 42px 42px 1fr;
+  grid-template-columns: 58px 42px 42px 58px 58px 58px;
   gap: 8px;
-  margin-top: 14px;
 }
 
 .danger-action,
@@ -340,9 +333,6 @@ h2 {
   display: grid;
   grid-template-columns: 1fr 1fr;
   gap: 4px 10px;
-  margin-top: 14px;
-  padding-top: 12px;
-  border-top: 1px solid var(--line);
 }
 
 .edge-readout span {
@@ -365,15 +355,9 @@ h2 {
   color: var(--danger) !important;
 }
 
-.dock-actions {
-  display: grid;
-  grid-template-columns: 1fr 0.7fr 0.9fr;
-  gap: 8px;
-}
-
 .network-stage {
   display: grid;
-  grid-template-rows: auto minmax(520px, 1fr) auto;
+  grid-template-rows: auto auto minmax(520px, 1fr) auto;
   gap: 12px;
   padding: 14px;
 }
@@ -761,13 +745,23 @@ h2 {
   background: #2b1211;
 }
 
+@media (max-width: 1360px) {
+  .edge-editor {
+    grid-template-columns: minmax(180px, 0.9fr) minmax(220px, 1.2fr);
+  }
+
+  .edge-actions,
+  .edge-readout {
+    grid-column: 1 / -1;
+  }
+}
+
 @media (max-width: 1220px) {
   .simulator-grid {
-    grid-template-columns: minmax(230px, 270px) minmax(0, 1fr);
+    grid-template-columns: 1fr;
   }
 
   .result-dock {
-    grid-column: 1 / -1;
     grid-template-columns: minmax(260px, 320px) minmax(0, 1fr);
   }
 
@@ -806,21 +800,9 @@ h2 {
   }
 
   .simulator-grid,
-  .result-dock {
+  .result-dock,
+  .edge-editor {
     grid-template-columns: 1fr;
-  }
-
-  .network-stage {
-    grid-row: 1;
-    min-height: auto;
-  }
-
-  .control-dock {
-    grid-row: 2;
-  }
-
-  .result-dock {
-    grid-row: 3;
   }
 
   .network-stage {
@@ -865,7 +847,6 @@ h2 {
     padding: 12px;
   }
 
-  .preset-strip,
   .target-buttons {
     grid-template-columns: 1fr;
   }
@@ -876,10 +857,6 @@ h2 {
 
   .edge-actions .secondary-action {
     grid-column: 1 / -1;
-  }
-
-  .dock-actions {
-    grid-template-columns: 1fr;
   }
 
   .network-wrap,

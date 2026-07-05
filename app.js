@@ -11,6 +11,11 @@ const modules = [
   { id: "stressOut", label: "C", name: "Product C", x: 865, y: 490, color: "#ff7a71", shape: "rect", terminal: "stress" },
 ];
 
+const modelDefaults = {
+  nutrient: 96,
+  stress: 70,
+};
+
 const links = [
   { id: "input_core", from: "input", to: "core", base: 120, mode: "supply", enzyme: "mannosidase", enzymeLabel: "MAN1/2", label: "切りそろえ", color: "#79a7ff" },
   { id: "core_high", from: "core", to: "high", base: 46, mode: "escape", enzymeLabel: "MAN1/2", label: "Aへ", color: "#f3c34d" },
@@ -26,49 +31,6 @@ const links = [
   { id: "finish_adaptive", from: "finish", to: "adaptive", base: 36, mode: "enzyme", enzyme: "terminal", enzymeLabel: "ST/FUT", label: "途中型", color: "#f3c34d" },
   { id: "finish_stress", from: "finish", to: "stressOut", base: 58, mode: "enzyme", enzyme: "terminal", enzymeLabel: "ST/FUT", label: "C", color: "#ff7a71" },
 ];
-
-const presets = {
-  balanced: {
-    label: "標準",
-    nutrient: 96,
-    stress: 70,
-    capacities: {},
-  },
-  stress: {
-    label: "滞在長め",
-    nutrient: 78,
-    stress: 130,
-    capacities: {
-      branch_finish: 130,
-      stall_finish: 155,
-      finish_stress: 150,
-    },
-  },
-  inhibited: {
-    label: "B弱め",
-    nutrient: 100,
-    stress: 70,
-    capacities: {
-      core_branch: 25,
-      high_branch: 25,
-      branch_extend: 55,
-      extend_adaptive: 50,
-      branch_finish: 60,
-    },
-  },
-  growth: {
-    label: "材料多め",
-    nutrient: 146,
-    stress: 64,
-    capacities: {
-      input_core: 145,
-      core_branch: 135,
-      high_branch: 130,
-      branch_extend: 120,
-      finish_stress: 110,
-    },
-  },
-};
 
 const phenotypeLabels = {
   stable: { label: "A", sub: "Product A", color: "#59d7c5" },
@@ -102,30 +64,18 @@ const nodeOrder = ["input", "core", "high", "branch", "stall", "extend", "finish
 const terminalOrder = ["stable", "adaptive", "stress"];
 
 const state = {
-  preset: "balanced",
   selectedEdge: "core_branch",
   target: "stable",
   edgeCapacities: {},
   history: [],
-  pulse: 0,
   frame: 0,
   feedback: "",
 };
 
 const dom = {
-  presetButtons: [...document.querySelectorAll(".preset")],
   targetButtons: [...document.querySelectorAll(".target-button")],
-  inputs: {
-    nutrient: document.querySelector("#nutrientInput"),
-    stress: document.querySelector("#stressInput"),
-  },
-  outputs: {
-    nutrient: document.querySelector("#nutrientOutput"),
-    stress: document.querySelector("#stressOutput"),
-  },
   edgeCapacityInput: document.querySelector("#edgeCapacityInput"),
   edgeCapacityOutput: document.querySelector("#edgeCapacityOutput"),
-  edgeStatus: document.querySelector("#edgeStatus"),
   edgeTitle: document.querySelector("#edge-editor-title"),
   edgeMeta: document.querySelector("#edgeMeta"),
   edgeKoButton: document.querySelector("#edgeKoButton"),
@@ -139,9 +89,7 @@ const dom = {
   phenotypeChart: document.querySelector("#phenotypeChart"),
   recommendationList: document.querySelector("#recommendationList"),
   totalFlux: document.querySelector("#totalFlux"),
-  systemState: document.querySelector("#systemState"),
   insightText: document.querySelector("#insightText"),
-  pulseButton: document.querySelector("#pulseButton"),
   resetButton: document.querySelector("#resetButton"),
   undoButton: document.querySelector("#undoButton"),
   feedbackToast: document.querySelector("#feedbackToast"),
@@ -150,7 +98,6 @@ const dom = {
 const requiredElements = [
   dom.edgeCapacityInput,
   dom.edgeCapacityOutput,
-  dom.edgeStatus,
   dom.edgeTitle,
   dom.edgeMeta,
   dom.edgeKoButton,
@@ -163,14 +110,10 @@ const requiredElements = [
   dom.phenotypeChart,
   dom.recommendationList,
   dom.totalFlux,
-  dom.systemState,
   dom.insightText,
-  dom.pulseButton,
   dom.resetButton,
   dom.undoButton,
   dom.feedbackToast,
-  ...Object.values(dom.inputs),
-  ...Object.values(dom.outputs),
 ];
 
 const reduceMotion = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
@@ -195,23 +138,19 @@ function nodeById(id) {
   return modules.find((module) => module.id === id);
 }
 
-function value(key) {
-  return Number(dom.inputs[key].value);
-}
-
 function getCurrentModel() {
   return {
-    nutrient: value("nutrient"),
-    stress: value("stress"),
+    nutrient: modelDefaults.nutrient,
+    stress: modelDefaults.stress,
     edgeCapacities: { ...state.edgeCapacities },
-    pulse: 1 + state.pulse * 0.28,
+    pulse: 1,
   };
 }
 
 function getBaselineModel() {
   return {
-    nutrient: presets.balanced.nutrient,
-    stress: presets.balanced.stress,
+    nutrient: modelDefaults.nutrient,
+    stress: modelDefaults.stress,
     edgeCapacities: defaultCapacities(),
     pulse: 1,
   };
@@ -466,7 +405,6 @@ function pushHistory() {
     selectedEdge: state.selectedEdge,
     target: state.target,
     edgeCapacities: { ...state.edgeCapacities },
-    inputs: Object.fromEntries(Object.entries(dom.inputs).map(([key, input]) => [key, input.value])),
   });
   if (state.history.length > 30) state.history.shift();
 }
@@ -481,7 +419,6 @@ function setEdgeCapacity(id, nextValue, options = {}) {
   if (!linkById(id)) return;
   if (!options.skipHistory) pushHistory();
   state.edgeCapacities[id] = Math.max(0, Math.min(200, Math.round(nextValue)));
-  state.preset = "custom";
   queueUpdate(options.feedback || "");
 }
 
@@ -506,29 +443,16 @@ function undoIntervention() {
   state.selectedEdge = previous.selectedEdge;
   state.target = previous.target;
   state.edgeCapacities = { ...previous.edgeCapacities };
-  Object.entries(previous.inputs).forEach(([key, inputValue]) => {
-    if (dom.inputs[key]) dom.inputs[key].value = inputValue;
-  });
   queueUpdate("Undo");
 }
 
 function updateOutputs() {
-  Object.entries(dom.inputs).forEach(([key, input]) => {
-    dom.outputs[key].value = input.value;
-    dom.outputs[key].textContent = input.value;
-    input.setAttribute("aria-valuetext", input.value);
-  });
   dom.edgeCapacityInput.value = String(edgeCapacity(state.selectedEdge));
   dom.edgeCapacityOutput.value = String(edgeCapacity(state.selectedEdge));
   dom.edgeCapacityOutput.textContent = String(edgeCapacity(state.selectedEdge));
 }
 
 function updatePresetButtons() {
-  dom.presetButtons.forEach((button) => {
-    const active = button.dataset.preset === state.preset;
-    button.classList.toggle("active", active);
-    button.setAttribute("aria-pressed", String(active));
-  });
   dom.targetButtons.forEach((button) => {
     const active = button.dataset.target === state.target;
     button.classList.toggle("active", active);
@@ -545,9 +469,7 @@ function updateEdgeEditor(result, baseline) {
   const reaction = link.enzyme ? enzymeNames[link.enzyme] : link.enzymeLabel;
 
   dom.edgeTitle.textContent = link.label;
-  dom.edgeMeta.textContent = `${reaction} Capacity / ${nodeById(link.from).name} → ${nodeById(link.to).name}`;
-  dom.edgeStatus.textContent = `Capacity ${cap}`;
-  dom.edgeStatus.className = cap === 0 ? "is-ko" : cap > 125 ? "is-high" : cap < 75 ? "is-low" : "";
+  dom.edgeMeta.textContent = `${reaction} / ${nodeById(link.from).name} → ${nodeById(link.to).name} / ${cap}`;
   dom.selectedEdgeFlow.textContent = flow.toFixed(0);
   dom.selectedEdgeDelta.textContent = `${delta >= 0 ? "+" : ""}${delta.toFixed(0)}`;
   dom.selectedEdgeDelta.className = delta > 3 ? "positive" : delta < -3 ? "negative" : "";
@@ -585,8 +507,7 @@ function updateChart(result, baseline) {
 function updateScores(result) {
   const dominant = terminalOrder.reduce((best, key) => (result.phenotypes[key] > result.phenotypes[best] ? key : best), terminalOrder[0]);
   dom.totalFlux.textContent = `Total ${result.total.toFixed(0)}`;
-  dom.systemState.textContent = phenotypeLabels[dominant].label;
-  dom.insightText.textContent = `${phenotypeLabels[dominant].label}が最大。Edge Capacityを変えるとFlowが再配分されます。`;
+  dom.insightText.textContent = `${phenotypeLabels[dominant].label}が最大。バーを動かすと線の太さとA/B/Cが変わります。`;
 }
 
 function applyChangesToModel(changes, model) {
@@ -636,7 +557,6 @@ function showFeedback(message) {
 }
 
 function update(feedback) {
-  if (state.pulse > 0) state.pulse = Math.max(0, state.pulse - 0.12);
   const baseline = calculateModel(getBaselineModel());
   const result = calculateModel(getCurrentModel());
   updateOutputs();
@@ -665,7 +585,7 @@ function renderError(error) {
     `;
     document.querySelector("#retryButton")?.addEventListener("click", () => window.location.reload());
   }
-  if (dom.systemState) dom.systemState.textContent = "Error";
+  if (dom.insightText) dom.insightText.textContent = "Error";
 }
 
 function safeUpdate(feedback) {
@@ -687,42 +607,12 @@ function queueUpdate(feedback) {
   });
 }
 
-function applyPreset(name, options = {}) {
-  const preset = presets[name];
-  if (!preset) return;
-  if (!options.skipHistory) pushHistory();
-  state.preset = name;
-  state.edgeCapacities = { ...defaultCapacities(), ...preset.capacities };
-  dom.inputs.nutrient.value = String(preset.nutrient);
-  dom.inputs.stress.value = String(preset.stress);
-  queueUpdate(options.silent ? "" : preset.label);
-}
-
-function markCustomCondition() {
-  state.preset = "custom";
-  queueUpdate();
-}
-
-function runPulse() {
-  pushHistory();
-  state.pulse = 1;
-  dom.pulseButton.disabled = true;
-  queueUpdate("Sugar pulse");
-  [180, 360, 540, 720].forEach((delay) => {
-    window.setTimeout(() => queueUpdate(), delay);
-  });
-  window.setTimeout(() => {
-    dom.pulseButton.disabled = false;
-  }, 820);
-}
-
 function resetAll() {
   pushHistory();
   state.selectedEdge = "core_branch";
   state.target = "stable";
-  state.pulse = 0;
   state.history = [];
-  applyPreset("balanced", { silent: true, skipHistory: true });
+  state.edgeCapacities = defaultCapacities();
   queueUpdate("Reset");
 }
 
@@ -732,25 +622,15 @@ function applyRecommendation(index) {
   pushHistory();
   Object.assign(state.edgeCapacities, plan.changes);
   state.selectedEdge = Object.keys(plan.changes)[0] || state.selectedEdge;
-  state.preset = "custom";
   queueUpdate(plan.label);
 }
 
 function bindEvents() {
-  dom.presetButtons.forEach((button) => {
-    button.addEventListener("click", () => applyPreset(button.dataset.preset));
-  });
-
   dom.targetButtons.forEach((button) => {
     button.addEventListener("click", () => {
       state.target = button.dataset.target;
       queueUpdate();
     });
-  });
-
-  Object.values(dom.inputs).forEach((input) => {
-    input.addEventListener("pointerdown", () => pushHistory());
-    input.addEventListener("input", markCustomCondition);
   });
 
   dom.edgeCapacityInput.addEventListener("pointerdown", () => {
@@ -770,7 +650,6 @@ function bindEvents() {
   dom.edgeMinusButton.addEventListener("click", () => adjustSelectedEdge(-25));
   dom.edgePlusButton.addEventListener("click", () => adjustSelectedEdge(25));
   dom.edgeResetButton.addEventListener("click", resetSelectedEdge);
-  dom.pulseButton.addEventListener("click", runPulse);
   dom.resetButton.addEventListener("click", resetAll);
   dom.undoButton.addEventListener("click", undoIntervention);
 
@@ -785,7 +664,7 @@ function init() {
   assertReady();
   state.edgeCapacities = defaultCapacities();
   bindEvents();
-  applyPreset("balanced", { silent: true, skipHistory: true });
+  queueUpdate();
 }
 
 window.addEventListener("error", (event) => {
