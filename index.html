@@ -88,10 +88,24 @@
           </div>
           <div class="bridge-arrow" aria-hidden="true"><span>モデル化</span></div>
           <svg class="network-mini" viewBox="0 0 300 180" role="img" aria-label="糖鎖を抽象化したネットワークモデル">
-            <path class="mini-edge main" d="M42 92 C82 92 97 92 130 92" />
-            <path class="mini-edge upper" d="M130 92 C168 60 198 38 246 31" />
-            <path class="mini-edge middle" d="M130 92 C168 92 198 92 246 92" />
-            <path class="mini-edge lower" d="M130 92 C168 124 198 147 246 154" />
+            <defs>
+              <marker id="miniArrowPrimary" viewBox="0 0 10 10" refX="8.5" refY="5" markerWidth="4" markerHeight="4" orient="auto-start-reverse">
+                <path d="M 0 0 L 10 5 L 0 10 z" fill="#64d2ff" />
+              </marker>
+              <marker id="miniArrowWarning" viewBox="0 0 10 10" refX="8.5" refY="5" markerWidth="4" markerHeight="4" orient="auto-start-reverse">
+                <path d="M 0 0 L 10 5 L 0 10 z" fill="#f3c34d" />
+              </marker>
+              <marker id="miniArrowSuccess" viewBox="0 0 10 10" refX="8.5" refY="5" markerWidth="4" markerHeight="4" orient="auto-start-reverse">
+                <path d="M 0 0 L 10 5 L 0 10 z" fill="#8de6a6" />
+              </marker>
+              <marker id="miniArrowDanger" viewBox="0 0 10 10" refX="8.5" refY="5" markerWidth="4" markerHeight="4" orient="auto-start-reverse">
+                <path d="M 0 0 L 10 5 L 0 10 z" fill="#ff7a71" />
+              </marker>
+            </defs>
+            <path class="mini-edge main" d="M42 92 C82 92 97 92 130 92" marker-end="url(#miniArrowPrimary)" />
+            <path class="mini-edge upper" d="M130 92 C168 60 198 38 246 31" marker-end="url(#miniArrowWarning)" />
+            <path class="mini-edge middle" d="M130 92 C168 92 198 92 246 92" marker-end="url(#miniArrowSuccess)" />
+            <path class="mini-edge lower" d="M130 92 C168 124 198 147 246 154" marker-end="url(#miniArrowDanger)" />
             <circle class="mini-node source" cx="42" cy="92" r="15" />
             <circle class="mini-node hub" cx="130" cy="92" r="16" />
             <circle class="mini-node upper" cx="246" cy="31" r="14" />
