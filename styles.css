@@ -118,6 +118,10 @@ p {
   text-transform: uppercase;
 }
 
+.brand-block .eyebrow {
+  font-size: 0.9rem;
+}
+
 h1 {
   margin-bottom: 0;
   color: var(--text);
