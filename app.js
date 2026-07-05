@@ -342,7 +342,7 @@ function nodeBoundaryOffset(module, ux = 1, uy = 0) {
   }
   if (module.shape === "diamond") return 42;
   if (module.shape === "hex") return 42;
-  if (module.shape === "terminal") return 58;
+  if (module.shape === "terminal") return 60;
   return 42;
 }
 
@@ -362,17 +362,6 @@ function pathFor(link) {
   const dy = endY - startY;
   const curve = Math.min(Math.max(28, dx * 0.44), Math.max(28, dx * 0.48));
   return `M ${startX} ${startY} C ${startX + curve} ${startY + dy * 0.08}, ${endX - curve} ${endY - dy * 0.08}, ${endX} ${endY}`;
-}
-
-function terminalPath(module, scale = 1) {
-  const width = 104 * scale;
-  const height = 66 * scale;
-  const left = module.x - width / 2;
-  const top = module.y - height / 2;
-  const right = module.x + width / 2;
-  const bottom = module.y + height / 2;
-  const radius = 18 * scale;
-  return `M ${left + radius} ${top} H ${right - radius} Q ${right} ${top} ${right} ${top + radius} V ${bottom - radius} Q ${right} ${bottom} ${right - radius} ${bottom} H ${left + radius} Q ${left} ${bottom} ${left} ${bottom - radius} V ${top + radius} Q ${left} ${top} ${left + radius} ${top} Z`;
 }
 
 function createShape(module, scale = 1) {
@@ -401,8 +390,11 @@ function createShape(module, scale = 1) {
     return hex;
   }
   if (module.shape === "terminal") {
-    const terminal = document.createElementNS("http://www.w3.org/2000/svg", "path");
-    terminal.setAttribute("d", terminalPath(module, scale));
+    const terminal = document.createElementNS("http://www.w3.org/2000/svg", "ellipse");
+    terminal.setAttribute("cx", module.x);
+    terminal.setAttribute("cy", module.y);
+    terminal.setAttribute("rx", 58 * scale);
+    terminal.setAttribute("ry", 38 * scale);
     return terminal;
   }
   const circle = document.createElementNS("http://www.w3.org/2000/svg", "circle");
@@ -577,7 +569,9 @@ function drawNetwork(result, baseline) {
     const elements = nodeElements.get(module.id);
     const amount = module.terminal ? result.phenotypes[module.terminal] ?? 0 : 0;
     if (module.terminal) {
-      setAttributeIfChanged(elements.shape, "d", terminalPath(module, terminalScale(module, result)));
+      const scale = terminalScale(module, result);
+      setAttributeIfChanged(elements.shape, "rx", (58 * scale).toFixed(2));
+      setAttributeIfChanged(elements.shape, "ry", (38 * scale).toFixed(2));
       setAttributeIfChanged(elements.shape, "fill", module.color);
       setStyleProperty(elements.group, "--node-color", module.color);
     }

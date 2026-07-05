@@ -243,6 +243,11 @@ h2 {
   font-weight: 700;
 }
 
+.output-panel .section-title strong {
+  font-size: 1.02rem;
+  font-weight: 820;
+}
+
 .secondary-action,
 .danger-action,
 .icon-action,
@@ -1113,21 +1118,40 @@ h2 {
   background: repeating-linear-gradient(90deg, var(--line-strong) 0 5px, transparent 5px 9px);
 }
 
-.legend-node {
-  width: 15px;
-  height: 15px;
+.legend-shapes {
+  display: flex;
+  gap: 3px;
+  align-items: center;
   justify-self: center;
+}
+
+.legend-shape {
+  display: block;
+  width: 10px;
+  height: 10px;
   border: 2px solid rgba(255, 255, 255, 0.86);
+  background: var(--success);
+}
+
+.legend-shape.circle {
   border-radius: 999px;
+}
+
+.legend-shape.square {
+  border-radius: 3px;
+}
+
+.legend-shape.hex {
+  clip-path: polygon(25% 0, 75% 0, 100% 50%, 75% 100%, 25% 100%, 0 50%);
   background: var(--success);
 }
 
 .legend-terminal {
-  width: 22px;
+  width: 28px;
   height: 15px;
   justify-self: center;
   border: 2px solid rgba(255, 255, 255, 0.9);
-  border-radius: 5px;
+  border-radius: 999px;
   background: var(--warning);
 }
 
@@ -1225,6 +1249,7 @@ h2 {
 
 .bio-node circle,
 .bio-node rect,
+.bio-node ellipse,
 .bio-node polygon,
 .bio-node path {
   stroke: rgba(255, 255, 255, 0.86);
@@ -1238,6 +1263,7 @@ h2 {
 
 .terminal-node circle,
 .terminal-node rect,
+.terminal-node ellipse,
 .terminal-node polygon,
 .terminal-node path {
   stroke: rgba(255, 255, 255, 0.92);
