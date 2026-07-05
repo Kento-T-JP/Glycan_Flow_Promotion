@@ -500,10 +500,14 @@ h2 {
 }
 
 .game-status span {
-  color: var(--muted);
+  color: var(--soft);
   font-size: 0.82rem;
-  font-weight: 700;
+  font-weight: 760;
   text-align: right;
+}
+
+.game-panel.playing .game-status span {
+  color: var(--focus);
 }
 
 .game-actions {

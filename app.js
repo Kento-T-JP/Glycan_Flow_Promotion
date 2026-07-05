@@ -268,6 +268,17 @@ function formatPercent(value) {
   return `${Math.round(value * 100)}%`;
 }
 
+function gameHint(result) {
+  const target = activeGameTarget();
+  const key = terminalOrder.reduce((largest, current) => {
+    const currentGap = Math.abs((result.proportions[current] ?? 0) - target[current]);
+    const largestGap = Math.abs((result.proportions[largest] ?? 0) - target[largest]);
+    return currentGap > largestGap ? current : largest;
+  }, terminalOrder[0]);
+  const direction = (result.proportions[key] ?? 0) < target[key] ? "増やす" : "減らす";
+  return `${phenotypeLabels[key].label}を${direction}`;
+}
+
 function nodeBoundaryOffset(module) {
   if (module.shape === "diamond") return 50;
   if (module.shape === "rect") return 54;
@@ -548,8 +559,9 @@ function updateGame(result) {
   dom.gameTimer.textContent = state.game.playing ? `${remaining}s` : "--";
   dom.gameScoreFill.style.setProperty("--score-width", `${score}%`);
   dom.gameScore.textContent = state.game.playing ? `${score}` : state.game.verdict;
-  dom.gamePrompt.textContent = state.game.playing ? "線を選んで、バーで合わせる" : "Startで30秒チャレンジ";
+  dom.gamePrompt.textContent = state.game.playing ? gameHint(result) : "Startで30秒チャレンジ";
   dom.gameStartButton.textContent = state.game.playing ? "Finish" : "Start";
+  dom.gameNewTargetButton.disabled = state.game.playing;
 
   dom.gameTargets.innerHTML = "";
   terminalOrder.forEach((key) => {
