@@ -303,7 +303,7 @@ function activeGameTarget() {
 }
 
 function randomGameTarget() {
-  const raw = terminalOrder.map(() => 10 + Math.random() * 80);
+  const raw = terminalOrder.map(() => 8 + Math.random() * 92);
   const total = raw.reduce((sum, value) => sum + value, 0);
   const rounded = raw.map((value) => Math.max(5, Math.round((value / total) * 100)));
   const correction = 100 - rounded.reduce((sum, value) => sum + value, 0);
@@ -825,20 +825,19 @@ function hideGameResultFlash() {
   window.clearTimeout(gameResultTimer);
   gameResultTimer = 0;
   dom.gameResultFlash.hidden = true;
-  dom.gameResultFlash.classList.remove("celebrate", "retry");
+  dom.gameResultFlash.classList.remove("excellent", "good", "retry");
 }
 
 function showGameResultFlash(verdict, score) {
   hideGameResultFlash();
-  const isGoodResult = score >= 65;
+  const resultClass = verdict === "Excellent" ? "excellent" : verdict === "Good" ? "good" : "retry";
   setText(dom.gameResultTitle, verdict);
   setText(dom.gameResultScore, `Score ${score}`);
-  dom.gameResultFlash.classList.toggle("celebrate", isGoodResult);
-  dom.gameResultFlash.classList.toggle("retry", !isGoodResult);
+  dom.gameResultFlash.classList.add(resultClass);
   dom.gameResultFlash.hidden = false;
   gameResultTimer = window.setTimeout(() => {
     dom.gameResultFlash.hidden = true;
-  }, isGoodResult ? 2400 : 1900);
+  }, verdict === "Excellent" ? 2600 : verdict === "Good" ? 2200 : 1900);
 }
 
 function updateScores(result) {

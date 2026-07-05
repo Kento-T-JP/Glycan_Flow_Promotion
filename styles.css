@@ -593,19 +593,35 @@ h2 {
   transform: translate(-50%, -50%) scale(0.3);
 }
 
-.game-result-flash.celebrate {
+.game-result-flash.good {
+  background:
+    radial-gradient(circle at 50% 48%, rgba(141, 230, 166, 0.24), transparent 32%),
+    radial-gradient(circle at 38% 42%, rgba(100, 210, 255, 0.16), transparent 24%),
+    rgba(15, 18, 21, 0.58);
+}
+
+.game-result-flash.excellent {
   background:
     radial-gradient(circle at 50% 48%, rgba(248, 212, 107, 0.26), transparent 34%),
     radial-gradient(circle at 38% 42%, rgba(141, 230, 166, 0.18), transparent 24%),
     rgba(15, 18, 21, 0.58);
 }
 
-.game-result-flash.celebrate::before,
-.game-result-flash.celebrate::after {
-  animation: resultRing 1100ms ease-out forwards;
+.game-result-flash.good::before {
+  border-color: rgba(141, 230, 166, 0.36);
+  animation: resultRing 960ms ease-out forwards;
 }
 
-.game-result-flash.celebrate::after {
+.game-result-flash.good::after {
+  display: none;
+}
+
+.game-result-flash.excellent::before,
+.game-result-flash.excellent::after {
+  animation: resultRing 1200ms ease-out forwards;
+}
+
+.game-result-flash.excellent::after {
   width: 220px;
   height: 220px;
   border-color: rgba(248, 212, 107, 0.36);
@@ -629,6 +645,18 @@ h2 {
   line-height: 0.95;
   text-shadow: 0 0 30px rgba(248, 212, 107, 0.42);
   animation: resultPop 1200ms ease-out both;
+}
+
+.game-result-flash.good strong {
+  color: var(--success);
+  text-shadow: 0 0 28px rgba(141, 230, 166, 0.38);
+}
+
+.game-result-flash.excellent strong {
+  color: var(--focus);
+  text-shadow:
+    0 0 30px rgba(248, 212, 107, 0.48),
+    0 0 56px rgba(248, 212, 107, 0.22);
 }
 
 .game-result-flash.retry strong {
@@ -874,8 +902,9 @@ h2 {
   .game-countdown strong,
   .game-result-flash,
   .game-result-flash strong,
-  .game-result-flash.celebrate::before,
-  .game-result-flash.celebrate::after {
+  .game-result-flash.good::before,
+  .game-result-flash.excellent::before,
+  .game-result-flash.excellent::after {
     animation: none;
   }
 }
