@@ -6,192 +6,146 @@
     <title>Glycan Flow Promotion</title>
     <meta
       name="description"
-      content="糖鎖生合成の反応経路をネットワークとして操作し、条件変化が生成物の分布に与える影響を確認するWebアプリケーション"
+      content="糖鎖生合成ネットワークのEdge Capacityを直接操作し、Flowと最終糖鎖分布の変化を観察する静的Webアプリケーション"
     />
     <link rel="stylesheet" href="styles.css" />
   </head>
   <body>
-    <a class="skip-link" href="#simulator">シミュレーターへ移動</a>
+    <a class="skip-link" href="#networkSvg">ネットワークへ移動</a>
 
-    <header class="app-header">
-      <div class="header-copy">
-        <p class="eyebrow">糖鎖生合成フローシミュレーター</p>
-        <h1>糖鎖が作られる経路を、流れとして操作する</h1>
-        <p>
-          糖の材料、酵素の働き、ゴルジ体での処理時間を変えると、どの糖鎖タイプが増えやすいかを確認できます。
-        </p>
+    <header class="topbar">
+      <div>
+        <p class="eyebrow">Glycan Flow Promotion</p>
+        <h1>Edgeを触って、糖鎖の流れを変える</h1>
       </div>
-
-      <ol class="flow-steps" aria-label="基本操作の流れ">
-        <li><span>1</span><strong>培養条件を選ぶ</strong><small>細胞内の材料と酵素状態を置く</small></li>
-        <li><span>2</span><strong>酵素反応を変える</strong><small>強める・弱める・止める</small></li>
-        <li><span>3</span><strong>糖鎖分布を見る</strong><small>増えた糖鎖タイプを比較</small></li>
-      </ol>
+      <div class="quick-guide" aria-label="基本操作">
+        <span>Edgeを選ぶ</span>
+        <span>Capacity</span>
+        <span>Flow</span>
+        <span>Distribution</span>
+      </div>
     </header>
 
-    <main class="app-shell" id="simulator">
-      <section class="control-panel" aria-labelledby="controls-title">
-        <div class="section-heading">
-          <p class="eyebrow">条件設定</p>
-          <h2 id="controls-title">まず、糖鎖合成の条件を決める</h2>
-          <p>糖の材料と反応時間を決め、各酵素の働きを増やす・減らす・止めると、糖鎖タイプの分布が再計算されます。</p>
-        </div>
+    <main class="simulator-grid" id="simulator">
+      <aside class="control-dock" aria-label="介入">
+        <section class="dock-section compact">
+          <div class="section-title">
+            <span>Condition</span>
+            <strong id="systemState">標準</strong>
+          </div>
+          <div class="preset-strip" role="group" aria-label="条件プリセット">
+            <button class="preset active" data-preset="balanced" type="button" aria-pressed="true">Standard</button>
+            <button class="preset" data-preset="stress" type="button" aria-pressed="false">Long stay</button>
+            <button class="preset" data-preset="inhibited" type="button" aria-pressed="false">Low branch</button>
+            <button class="preset" data-preset="growth" type="button" aria-pressed="false">High sugar</button>
+          </div>
+        </section>
 
-        <div class="preset-grid" role="group" aria-label="条件プリセット">
-          <button class="preset active" data-preset="balanced" type="button" aria-pressed="true">
-            <span>標準ゴルジ条件</span>
-            <small>基準の糖鎖合成</small>
-          </button>
-          <button class="preset" data-preset="stress" type="button" aria-pressed="false">
-            <span>滞在時間が長い</span>
-            <small>処理が進みやすい</small>
-          </button>
-          <button class="preset" data-preset="inhibited" type="button" aria-pressed="false">
-            <span>枝分かれ酵素が弱い</span>
-            <small>分岐が進みにくい</small>
-          </button>
-          <button class="preset" data-preset="growth" type="button" aria-pressed="false">
-            <span>糖供与体が多い</span>
-            <small>材料が十分にある</small>
-          </button>
-        </div>
+        <section class="dock-section edge-editor" aria-labelledby="edge-editor-title">
+          <div class="section-title">
+            <span>Selected Edge</span>
+            <strong id="edgeStatus">Capacity 100</strong>
+          </div>
+          <h2 id="edge-editor-title">Edgeを選択</h2>
+          <p id="edgeMeta">ネットワーク上の太い線をクリック</p>
 
-        <div class="parameter-list" aria-label="モデル条件">
-          <label class="slider-field" for="nutrientInput">
-            <span>糖供与体プール</span>
-            <small>UDP-GlcNAcなど、糖を付加する材料の量</small>
-            <input id="nutrientInput" type="range" min="20" max="160" value="96" />
+          <div class="capacity-meter" aria-hidden="true">
+            <span id="capacityFill"></span>
+          </div>
+
+          <label class="capacity-slider" for="edgeCapacityInput">
+            <span>Capacity</span>
+            <output id="edgeCapacityOutput" for="edgeCapacityInput">100</output>
+            <input id="edgeCapacityInput" type="range" min="0" max="200" value="100" />
+          </label>
+
+          <div class="edge-actions" aria-label="Edge Capacity操作">
+            <button id="edgeKoButton" class="danger-action" type="button">止める</button>
+            <button id="edgeMinusButton" class="icon-action" type="button" aria-label="Capacityを下げる">-</button>
+            <button id="edgePlusButton" class="icon-action" type="button" aria-label="Capacityを上げる">+</button>
+            <button id="edgeResetButton" class="secondary-action" type="button">Reset</button>
+          </div>
+
+          <div class="edge-readout" aria-live="polite">
+            <span>Flow</span>
+            <strong id="selectedEdgeFlow">0</strong>
+            <span>Delta</span>
+            <strong id="selectedEdgeDelta">0</strong>
+          </div>
+        </section>
+
+        <section class="dock-section compact" aria-label="全体条件">
+          <label class="mini-slider" for="nutrientInput">
+            <span>Sugar pool</span>
             <output id="nutrientOutput" for="nutrientInput">96</output>
+            <input id="nutrientInput" type="range" min="20" max="160" value="96" />
           </label>
-          <label class="slider-field" for="stressInput">
-            <span>ゴルジ滞在時間</span>
-            <small>糖鎖が酵素に触れて処理される時間</small>
-            <input id="stressInput" type="range" min="0" max="140" value="28" />
-            <output id="stressOutput" for="stressInput">28</output>
+          <label class="mini-slider" for="stressInput">
+            <span>Golgi stay</span>
+            <output id="stressOutput" for="stressInput">70</output>
+            <input id="stressInput" type="range" min="0" max="140" value="70" />
           </label>
-        </div>
-
-        <div class="enzyme-panel" aria-label="酵素の働き具合">
-          <div class="subsection-heading">
-            <strong>酵素の働き具合</strong>
-            <span>0 は止める、100 は標準、200 は強く働く状態です。</span>
+          <div class="dock-actions">
+            <button class="secondary-action" id="pulseButton" type="button">Sugar pulse</button>
+            <button class="secondary-action" id="undoButton" type="button" disabled>Undo</button>
+            <button class="secondary-action" id="resetButton" type="button">Reset all</button>
           </div>
-          <label class="enzyme-row" for="mannosidaseInput">
-            <span>切りそろえる酵素</span>
-            <small>マンノシダーゼ: マンノースを減らす</small>
-            <input id="mannosidaseInput" data-enzyme="mannosidase" type="range" min="0" max="200" value="100" />
-            <output id="mannosidaseOutput" for="mannosidaseInput">100</output>
-            <button class="ko-button" type="button" data-ko="mannosidase">止める</button>
-          </label>
-          <label class="enzyme-row" for="mgatInput">
-            <span>枝分かれを作る酵素</span>
-            <small>MGAT: 枝分かれを増やす</small>
-            <input id="mgatInput" data-enzyme="mgat" type="range" min="0" max="200" value="100" />
-            <output id="mgatOutput" for="mgatInput">100</output>
-            <button class="ko-button" type="button" data-ko="mgat">止める</button>
-          </label>
-          <label class="enzyme-row" for="galtInput">
-            <span>枝を伸ばす酵素</span>
-            <small>GalT: ガラクトースを付ける</small>
-            <input id="galtInput" data-enzyme="galt" type="range" min="0" max="200" value="100" />
-            <output id="galtOutput" for="galtInput">100</output>
-            <button class="ko-button" type="button" data-ko="galt">止める</button>
-          </label>
-          <label class="enzyme-row" for="terminalInput">
-            <span>仕上げる酵素</span>
-            <small>ST/FUT: シアル酸・フコースを付ける</small>
-            <input id="terminalInput" data-enzyme="terminal" type="range" min="0" max="200" value="100" />
-            <output id="terminalOutput" for="terminalInput">100</output>
-            <button class="ko-button" type="button" data-ko="terminal">止める</button>
-          </label>
-        </div>
+        </section>
+      </aside>
 
-        <div class="intervention-tools" aria-label="介入操作">
-          <button class="primary-action" id="pulseButton" type="button">糖の材料を一時的に増やす</button>
-          <button class="secondary-action" id="undoButton" type="button" disabled>直前の酵素操作を戻す</button>
-          <button class="secondary-action" id="resetButton" type="button">標準条件に戻す</button>
-        </div>
-
-        <div class="legend" aria-label="反応点の状態">
-          <span><i class="dot normal"></i>通常</span>
-          <span><i class="dot boosted"></i>増強</span>
-          <span><i class="dot inhibited"></i>停止</span>
-        </div>
-      </section>
-
-      <section class="stage-panel" aria-labelledby="network-heading">
-        <div class="stage-header">
+      <section class="network-stage" aria-labelledby="network-heading">
+        <div class="stage-topline">
           <div>
-            <p class="eyebrow">反応モデル</p>
-          <h2 id="network-heading">糖鎖がどの道を通るか</h2>
+            <p class="eyebrow">Interactive Biosynthesis Network</p>
+            <h2 id="network-heading">Node = Glycan / Edge = Reaction / Width = Flow</h2>
           </div>
-          <div class="system-summary" aria-label="現在のシミュレーション状態">
-            <span>現在の状態</span>
-            <strong id="systemState">計算中</strong>
+          <div class="flow-legend" aria-label="Flow legend">
+            <span><i class="line active"></i>流れている</span>
+            <span><i class="line stopped"></i>停止</span>
+            <span><i class="dot selected"></i>選択中</span>
           </div>
         </div>
 
         <div class="network-wrap">
-          <div class="state-overlay" id="networkLoading">モデルを準備しています</div>
-          <svg id="networkSvg" class="network-svg" viewBox="0 0 980 620" role="img" aria-labelledby="networkTitle networkDesc">
-            <title id="networkTitle">糖鎖生合成を表す反応ネットワーク</title>
-            <desc id="networkDesc">糖鎖前駆体が切りそろえ、枝分かれ、伸長、仕上げを受ける流れを示します。酵素反応点をクリックして通常、増強、停止に切り替えられます。</desc>
+          <div class="state-overlay" id="networkLoading">Loading</div>
+          <svg id="networkSvg" class="network-svg" viewBox="0 0 1040 650" role="img" aria-labelledby="networkTitle networkDesc">
+            <title id="networkTitle">糖鎖生合成ネットワーク</title>
+            <desc id="networkDesc">Edgeを選択してCapacityを変更すると、FlowとTerminal Glycan Distributionが変化します。</desc>
           </svg>
         </div>
 
-        <div class="node-readout" id="nodeReadout" aria-live="polite">
-          <span>選択中の反応点</span>
-          <strong>糖鎖前駆体 - 通常</strong>
-          <p>酵素反応点をクリックすると、標準、強める、止めるの順に切り替わります。</p>
+        <div class="edge-hint" id="edgeHint" aria-live="polite">
+          <span>Click any edge</span>
+          <strong id="insightText">Capacityを変えると下流のFlowが再配分されます。</strong>
         </div>
       </section>
 
-      <section class="output-panel" id="output" aria-labelledby="output-title">
-        <div class="section-heading compact">
-          <p class="eyebrow">計算結果</p>
-          <h2 id="output-title">どの糖鎖タイプが増えたかを見る</h2>
-        </div>
+      <aside class="result-dock" aria-label="結果">
+        <section class="dock-section target-panel">
+          <div class="section-title">
+            <span>Target Glycan</span>
+            <strong>Reduce</strong>
+          </div>
+          <div class="target-buttons" role="group" aria-label="減らしたい糖鎖">
+            <button class="target-button active" data-target="stable" type="button" aria-pressed="true">未加工</button>
+            <button class="target-button" data-target="adaptive" type="button" aria-pressed="false">枝分かれ</button>
+            <button class="target-button" data-target="stress" type="button" aria-pressed="false">仕上げ済み</button>
+          </div>
+          <div class="recommendation" id="recommendationList" aria-live="polite"></div>
+        </section>
 
-        <div class="insight-box primary-insight">
-          <span>現在の仮説</span>
-          <p id="insightText">条件を動かすと、未加工タイプ、枝分かれタイプ、仕上げ済みタイプの割合が変化します。</p>
-        </div>
-
-        <div class="score-board" aria-label="主要指標">
-          <div>
-            <span>総糖鎖量</span>
+        <section class="dock-section output-panel" id="output" aria-labelledby="output-title">
+          <div class="section-title">
+            <span>Terminal Distribution</span>
             <strong id="totalFlux">0</strong>
           </div>
-          <div>
-            <span>糖鎖多様性</span>
-            <strong id="diversityScore">0</strong>
+          <h2 id="output-title">Baseline → Current</h2>
+          <div id="phenotypeChart" class="phenotype-chart" aria-live="polite">
+            <div class="empty-state">Calculating</div>
           </div>
-          <div>
-            <span>成熟効率</span>
-            <strong id="efficiencyScore">0%</strong>
-          </div>
-        </div>
-
-        <div id="phenotypeChart" class="phenotype-chart" aria-live="polite">
-          <div class="empty-state">結果を計算しています</div>
-        </div>
-      </section>
+        </section>
+      </aside>
     </main>
-
-    <section class="model-note" id="concept">
-      <div>
-        <p class="eyebrow">このモデルで見ること</p>
-        <h2>どの酵素条件で、どの糖鎖タイプが増えるかを試す</h2>
-      </div>
-      <p>
-        このアプリは、N型糖鎖の生合成を意識した簡略モデルです。糖鎖前駆体がゴルジ体で「切りそろえる」「枝分かれさせる」「伸ばす」「仕上げる」という反応を受け、未加工タイプ、枝分かれタイプ、仕上げ済みタイプへ分かれる流れを表します。
-      </p>
-    </section>
-
-    <footer class="app-footer">
-      <span>Glycan Flow Promotion</span>
-      <span>Interactive Research Overview</span>
-    </footer>
 
     <div class="feedback-toast" id="feedbackToast" role="status" aria-live="polite" hidden></div>
 
