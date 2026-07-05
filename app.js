@@ -442,7 +442,7 @@ function ensureNetworkElements(result) {
   if (networkInitialized) return;
   dom.networkSvg.innerHTML = "";
 
-  [130, 230, 330].forEach((radius) => {
+  [120, 220, 320, 420].forEach((radius) => {
     dom.networkSvg.append(svgElement("circle", {
       cx: "515",
       cy: "325",
